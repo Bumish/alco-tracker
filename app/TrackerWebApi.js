@@ -12,6 +12,7 @@ const url = require('url');
 const path = require('path');
 const pick = require('es6-pick');
 const isValidUid = require('./functions/isValidUid');
+const emptyGif = require('./functions/emptyGif');
 
 class TrackerHttpApi {
 
@@ -53,6 +54,13 @@ class TrackerHttpApi {
       res.cookie(uidParam, req.uid, { expires: new Date(Date.now() + this.options.cookieMaxAge * 1000), httpOnly: true });
 
       next();
+
+    });
+
+    this.app.get('/track', (req, res) => {
+
+      res.type('gif');
+      res.send(emptyGif);
 
     });
 
