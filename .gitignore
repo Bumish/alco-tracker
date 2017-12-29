@@ -1,0 +1,5 @@
+/node_modules
+/upload_ch
+/yarn-error.log
+/.env
+/alcojs

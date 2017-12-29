@@ -1,0 +1,11 @@
+docker build -t alcolytics/alco-tracker . \
+&& docker kill alco-tracker \
+&& docker rm -f alco-tracker \
+&& docker run -d \
+     --name alco-tracker \
+     --hostname=alco-tracker \
+     --restart=always \
+     --net alconet \
+     -p 8081:8080 \
+     -v /srv/upload_ch:/usr/src/app/upload_ch \
+     alcolytics/alco-tracker

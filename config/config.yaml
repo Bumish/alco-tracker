@@ -1,0 +1,26 @@
+http:
+  port: <%= env.PORT || '8080' %>
+  host: <%= env.HOST || '0.0.0.0' %>
+  uidParam: uid
+  cookieMaxAge: <%= 2 * 365 * 24 * 60 * 60 %>
+  trustProxy:
+    - '172.16.0.0/16'
+    - '127.0.0.1'
+
+mixpanel:
+  enabled: true
+  token: <%= env.MIXPANEL_TOKEN %>
+  uploadInterval: 1
+
+clickhouse:
+  enabled: true
+  dsn: <%= env.CH_DSN %>
+  uploadInterval: 5
+
+services:
+  sypexgeo:
+    url: http://<%= env.SXGEO_SERVICE %>/query
+    json: true
+  deviced:
+    url: http://<%= env.DEVICED_SERVICE %>/query
+    json: true
