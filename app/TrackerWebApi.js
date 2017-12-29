@@ -33,7 +33,7 @@ class TrackerHttpApi {
     this.app = express();
     this.app.set('x-powered-by', false);
     this.app.set('trust proxy', tp);
-    this.app.set('etag', 'strong');
+    // this.app.set('etag', 'strong');
     this.app.use(cookieParser());
     this.app.use(cors({
       origin: true,
