@@ -11,7 +11,7 @@ const fs = Promise.promisifyAll(require('fs'));
 const url = require('url');
 const path = require('path');
 const pick = require('es6-pick');
-
+const isValidUid = require('./functions/isValidUid');
 
 class TrackerHttpApi {
 
@@ -48,13 +48,7 @@ class TrackerHttpApi {
 
       let receivedUid = req.query[uidParam] || req.cookies[uidParam];
 
-      // Handling buggy uid
-      if(receivedUid === 'undefined'){
-        receivedUid = undefined;
-      }
-      
-      req.uid = receivedUid || this.trackerService.generateUid();
-
+      req.uid = isValidUid(receivedUid) && receivedUid || this.trackerService.generateUid();
 
       res.cookie(uidParam, req.uid, { expires: new Date(Date.now() + this.options.cookieMaxAge * 1000), httpOnly: true });
 
