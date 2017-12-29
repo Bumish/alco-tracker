@@ -46,9 +46,15 @@ class TrackerHttpApi {
 
     this.app.use((req, res, next) => {
 
-      req.uid = req.query[uidParam]
-        ? req.query[uidParam]
-        : req.cookies[uidParam] || this.trackerService.generateUid();
+      let receivedUid = req.query[uidParam] || req.cookies[uidParam];
+
+      // Handling buggy uid
+      if(receivedUid === 'undefined'){
+        receivedUid = undefined;
+      }
+      
+      req.uid = receivedUid || this.trackerService.generateUid();
+
 
       res.cookie(uidParam, req.uid, { expires: new Date(Date.now() + this.options.cookieMaxAge * 1000), httpOnly: true });
 
