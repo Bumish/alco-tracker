@@ -4,6 +4,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
+const responseTime = require('response-time');
 const cors = require('cors');
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
@@ -33,7 +34,8 @@ class TrackerHttpApi {
     this.app = express();
     this.app.set('x-powered-by', false);
     this.app.set('trust proxy', tp);
-    // this.app.set('etag', 'strong');
+    this.app.set('etag', 'strong');
+    this.app.use(responseTime());
     this.app.use(cookieParser());
     this.app.use(cors({
       origin: true,
@@ -70,15 +72,15 @@ class TrackerHttpApi {
 
     this.app.get('/lib.js', (req, res) => {
 
-      const commands = `window.alco&&window.alco('setInitialUid','${req.uid}');`;
-      const contentLength = Buffer.byteLength(commands) + this.lib.byteLength;
-      res.setHeader('Content-Length', contentLength);
-      res.type('js');
-      res.write(commands);
-      res.write(this.lib);
-      res.end();
-
+      const cmd = new Buffer(`window.alco&&window.alco('setInitialUid','${req.uid}');`);
+      res.send(Buffer.concat([cmd, this.lib]));
     });
+
+
+    this.app.get('/hello', (req, res) => {
+      res.json({hello: 'world'});
+    });
+
 
     this.app.use(function(err, req, res, next) {
       console.error(err.stack);
