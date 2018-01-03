@@ -41,7 +41,7 @@ class TrackerHttpApi {
     // Statsd
 
     console.log(`Configured statsd at host ${options.statsd.host}`);
-    this.statsd = new StatsD({host: options.statsd});
+    this.statsd = new StatsD(options.statsd);
 
     // Tracker
     this.trackerService = trackerService;
