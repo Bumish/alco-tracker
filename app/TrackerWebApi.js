@@ -12,6 +12,7 @@ const path = require('path');
 const pick = require('es6-pick');
 const isValidUid = require('./functions/isValidUid');
 const emptyGif = require('./functions/emptyGif');
+const StatsD = require('statsd-client');
 const Measured = require('measured');
 
 // Stats
@@ -37,6 +38,12 @@ class TrackerHttpApi {
 
     console.log('Starting HTTP api. Environment:', isProduction ? 'production' : 'development');
 
+    // Statsd
+
+    console.log(`Configured statsd at host ${options.statsd.host}`);
+    this.statsd = new StatsD({host: options.statsd.host});
+
+    // Tracker
     this.trackerService = trackerService;
     this.defaults = {
       port: 8080,
@@ -80,6 +87,7 @@ class TrackerHttpApi {
     this.app.get('/track', (req, res) => {
 
       reqsStat.meter('trackGif').mark();
+      this.statsd.increment('reqs.trackGif');
 
       res.type('gif');
       res.send(emptyGif);
@@ -89,6 +97,7 @@ class TrackerHttpApi {
     this.app.post('/track', bodyParser.json({type: '*/*'}), (req, res) => {
 
       reqsStat.meter('trackPost').mark();
+      this.statsd.increment('reqs.trackPost');
 
       const msg = Object.assign({}, req.body, {
         uid: req.uid,
@@ -101,17 +110,20 @@ class TrackerHttpApi {
       res.json({result: 'queued'});
 
       rtHistTrack.update(duration(req.startAt));
+      this.statsd.timing('rt.trackPost', duration(req.startAt));
 
     });
 
     this.app.get('/lib.js', (req, res) => {
 
       reqsStat.meter('lib').mark();
+      this.statsd.increment('reqs.lib');
 
       const cmd = new Buffer(`window.alco&&window.alco('configure',{initialUid:'${req.uid}'});`);
       res.send(Buffer.concat([cmd, this.lib]));
 
       rtHistLib.update(duration(req.startAt));
+      this.statsd.timing('rt.lib', duration(req.startAt));
 
     });
 

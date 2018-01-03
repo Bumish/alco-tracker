@@ -24,3 +24,6 @@ services:
   deviced:
     url: http://<%= env.DEVICED_SERVICE %>/query
     json: true
+
+statsd:
+  host: <%= env.STATSD_HOST %>
