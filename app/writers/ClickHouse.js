@@ -72,19 +72,19 @@ class ClickHouse {
 
     let record = pick(rest, 'id', 'projectId', 'name', 'uid', 'ip', 'userAgent');
 
-    record.page = pick(page, 'url', 'referrer', 'title', 'number');
+    record.page = pick(page, 'url', 'referrer', 'title');
 
-    record.user = pick(user || {}, 'id', 'traits');
+    record.user = pick(user || {}, 'id', 'traits', 'ymId', 'gaId');
     record.user.traits = unzip(record.user.traits, String, String);
 
-    record.session = pick(session, 'type', 'engine', 'num', 'hasMarks', 'start', 'refHost');
+    record.session = pick(session, 'type', 'engine', 'num', 'hasMarks', 'start', 'refHost', 'pageNum', 'eventNum');
 
     const marks = session.marks || {};
 
     record.campaign = marks.utm_campaign || marks.os_campaign;
     record.source = marks.utm_source || marks.os_source;
 
-    record.session.marks = unzip(marks, String, String);
+    record.session.marks = unzip(session.marks, String, String);
 
     record.lib = pick(library || {}, 'name', 'libver', 'snippet');
     record.client = pick(client || {}, 'type', 'name', 'version', 'tz', 'ts', 'tzOffset', 'platform', 'product');
@@ -98,7 +98,7 @@ class ClickHouse {
     record.timestamp = rest.time.getTime();
     record.dateTime = rest.time.toISOString().slice(0,19).replace('T',' ');
     record.date = record.dateTime.substr(0, 10);
-    record.isBot = Number(rest.isBot);
+    record.isBot = Number(rest.isBot || -1);
     record.data = unzip(data, String, String);
 
     record = flatten(record, '_');

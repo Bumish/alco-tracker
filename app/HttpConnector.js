@@ -6,9 +6,9 @@ const debug = require('debug')('http-connector');
 
 class HTTPConnector {
 
-  constructor(options){
+  constructor(options) {
 
-    if(!options.url){
+    if (!options.url) {
       console.warn('HTTPConnector: You should provide api url');
     }
 
@@ -23,7 +23,7 @@ class HTTPConnector {
   }
 
 
-  query(params){
+  query(params) {
 
     const url = this.url(params);
 
@@ -39,7 +39,13 @@ class HTTPConnector {
 
       })
       .catch(err => {
+
         console.error(err);
+        return {
+          success: false,
+          error: err.message
+        }
+
       });
 
   }
