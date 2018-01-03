@@ -24,12 +24,12 @@ const statsSecret = require('crypto').randomBytes(32).toString('hex');
 /**
  * Duration
  * @param startAt
- * @return {string} nanoseconds
+ * @return {number} nanoseconds
  */
 const duration = function (startAt) {
   const diff = process.hrtime(startAt);
   const time = diff[0] * 1e3 + diff[1] * 1e-6;
-  return time.toFixed(0);
+  return Math.round(time);
 };
 
 class TrackerHttpApi {
