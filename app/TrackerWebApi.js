@@ -13,12 +13,30 @@ const path = require('path');
 const pick = require('es6-pick');
 const isValidUid = require('./functions/isValidUid');
 const emptyGif = require('./functions/emptyGif');
+const Measured = require('measured');
+
+// Stats
+const reqsStat = Measured.createCollection();
+const rtHistTrack = new Measured.Histogram();
+const rtHistLib = new Measured.Histogram();
+const statsSecret = require('crypto').randomBytes(32).toString('hex');
+
+/**
+ * Duration
+ * @param startAt
+ * @return {string} nanoseconds
+ */
+const duration = function (startAt) {
+  const diff = process.hrtime(startAt);
+  const time = diff[0] * 1e3 + diff[1] * 1e-6;
+  return time.toFixed(0);
+};
 
 class TrackerHttpApi {
 
   constructor(options, trackerService) {
 
-    console.log('Starting HTTP api. Environment:', isProduction ? 'production': 'development');
+    console.log('Starting HTTP api. Environment:', isProduction ? 'production' : 'development');
 
     this.trackerService = trackerService;
     this.defaults = {
@@ -47,11 +65,15 @@ class TrackerHttpApi {
 
     this.app.use((req, res, next) => {
 
+      // Execution time
+      req.startAt = process.hrtime();
+
+      // Handling uid
       let receivedUid = req.query[uidParam] || req.cookies[uidParam];
 
       req.uid = isValidUid(receivedUid) && receivedUid || this.trackerService.generateUid();
 
-      res.cookie(uidParam, req.uid, { expires: new Date(Date.now() + this.options.cookieMaxAge * 1000), httpOnly: true });
+      res.cookie(uidParam, req.uid, {expires: new Date(Date.now() + this.options.cookieMaxAge * 1000), httpOnly: true});
 
       next();
 
@@ -59,12 +81,16 @@ class TrackerHttpApi {
 
     this.app.get('/track', (req, res) => {
 
+      reqsStat.meter('trackGif').mark();
+
       res.type('gif');
       res.send(emptyGif);
 
     });
 
-    this.app.post('/track', bodyParser.json({type:'*/*'}), (req, res) => {
+    this.app.post('/track', bodyParser.json({type: '*/*'}), (req, res) => {
+
+      reqsStat.meter('trackPost').mark();
 
       const msg = Object.assign({}, req.body, {
         uid: req.uid,
@@ -74,25 +100,43 @@ class TrackerHttpApi {
 
       this.trackerService.track(msg);
 
+      rtHistTrack.update(duration(req.startAt));
+
       res.json({result: 'queued'});
 
     });
 
     this.app.get('/lib.js', (req, res) => {
 
-      const cmd = new Buffer(`window.alco&&window.alco('setInitialUid','${req.uid}');`);
+      reqsStat.meter('lib').mark();
+
+      const cmd = new Buffer(`window.alco&&window.alco('configure',{initialUid:'${req.uid}'});`);
+
+      rtHistLib.update(duration(req.startAt));
       res.send(Buffer.concat([cmd, this.lib]));
+
     });
 
+    this.app.get('/stat', (req, res) => {
 
-    this.app.get('/hello', (req, res) => {
-      res.json({hello: 'world'});
+      res.json(req.query.key === statsSecret
+        ? {
+          reqs: reqsStat.toJSON(),
+          track: rtHistTrack.toJSON(),
+          lib: rtHistLib.toJSON()
+        }
+        : {error: 'wrong secret'}
+      );
+
     });
 
+    this.app.use(function (err, req, res, next) {
 
-    this.app.use(function(err, req, res, next) {
+      reqsStat.meter('error').mark();
+
       console.error(err.stack);
       res.status(500).json({error: true});
+
     });
   }
 
@@ -103,6 +147,7 @@ class TrackerHttpApi {
     this.lib = await fs.readFileAsync(path.join(__dirname, '..', 'alcojs', fn));
     console.log(`loaded. size: ${this.lib.length}`);
     console.log('starting http api on port:', this.options.port);
+    console.log(`to access stats: /stat?key=${statsSecret}`);
     this.app.listen(this.options.port, this.options.host);
 
   }

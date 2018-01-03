@@ -1,6 +1,6 @@
 {
   "name": "alco-tracker",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Alcolytics tracking service",
   "main": "app/tracker.js",
   "scripts": {
