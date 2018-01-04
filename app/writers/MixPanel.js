@@ -58,7 +58,7 @@ class MixPanel {
     }
 
     const mpEvent = flatten(pick(msg, 'name', 'id', 'ip', 'projectId', 'session',  'browser', 'client', 'device',
-      'ymClientId', 'gaClientId', 'os', 'country', 'region', 'city', 'page', 'data', 'user', 'library'
+      'ymClientId', 'gaClientId', 'os', 'country', 'region', 'city', 'page', 'data', 'user', 'library', 'perf'
     ));
 
     mpEvent.distinct_id = msg.uid;
