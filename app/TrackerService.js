@@ -73,12 +73,12 @@ class TrackerService {
     return msg;
   }
 
-  track(msg) {
+  async track(msg) {
 
     msg.id = this.generateEventId();
     msg.time = new Date();
 
-    this.enrich(msg)
+    await this.enrich(msg)
       .then(msg => {
         this.writers.map(w => {
           w.push(Object.assign({}, msg));

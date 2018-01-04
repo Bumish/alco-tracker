@@ -105,7 +105,10 @@ class TrackerHttpApi {
         userAgent: req.headers['user-agent'],
       });
 
-      this.trackerService.track(msg);
+      this.trackerService.track(msg)
+        .then(() => {
+          this.statsd.timing('rt.trackHandled', duration(req.startAt));
+        });
 
       res.json({result: 'queued'});
 

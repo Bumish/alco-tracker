@@ -15,11 +15,10 @@ class HTTPConnector {
     this.options = options;
     this.url = tmplCompile(options.url);
     this.gotOptions = {
-      timeout: 2000,
+      timeout: 10000,
       retries: 2,
       json: options.json === true
     }
-
   }
 
 
