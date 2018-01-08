@@ -13,7 +13,7 @@ const DEFAULT_TABLE = 'events';
 
 class ClickHouse {
 
-  constructor(options){
+  constructor(options) {
 
     this.defaults = {
       uploadInterval: 5,
@@ -25,7 +25,7 @@ class ClickHouse {
 
     this.writers = new Map();
 
-    if(this.configured){
+    if (this.configured) {
       const connOptions = dsnParse(this.options.dsn);
 
       this.uploader = new CHUploader(connOptions);
@@ -36,13 +36,13 @@ class ClickHouse {
     setInterval(() => this.upload(), this.options.uploadInterval * 1000);
   }
 
-  isConfigured(){
+  isConfigured() {
     return this.configured;
   }
 
-  upload(){
+  upload() {
 
-    if(!this.configured){
+    if (!this.configured) {
       return;
     }
 
@@ -58,13 +58,13 @@ class ClickHouse {
   }
 
 
-  push(msg){
+  push(msg) {
 
-    if(!this.configured){
+    if (!this.configured) {
       return;
     }
 
-    if(!this.writers.has(DEFAULT_TABLE)){
+    if (!this.writers.has(DEFAULT_TABLE)) {
       this.writers.set(DEFAULT_TABLE, new CHBufferWriter(DEFAULT_TABLE));
     }
 
@@ -96,9 +96,9 @@ class ClickHouse {
     record.os = pick(os || {}, 'name', 'version', 'platform');
     record.device = pick(device || {}, 'type', 'brand', 'model');
     record.timestamp = rest.time.getTime();
-    record.dateTime = rest.time.toISOString().slice(0,19).replace('T',' ');
+    record.dateTime = rest.time.toISOString().slice(0, 19).replace('T', ' ');
     record.date = record.dateTime.substr(0, 10);
-    record.isBot = Number(rest.isBot || -1);
+    record.isBot = typeof rest.isBot === 'boolean' ? Number(rest.isBot) : -1;
     record.data = unzip(data, String, String);
 
     record = flatten(record, '_');
@@ -114,7 +114,6 @@ class ClickHouse {
         console.error(err);
 
       });
-
 
 
   }
