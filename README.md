@@ -8,7 +8,7 @@ Is an open source platform for a web and product analytics. It consists of a set
 
 ## AlcoTracker
 
-This service which collects data via HTTP and stores in ClickHouse a column-oriented database. It accepts AlcoJS data calls and third-party tools webhooks. On the fly enriches with data using geo-coding and device detection services. Results are stored and optionally can be sent to the third-party services via API.
+This service which collects data via HTTP (AlcoJS, 3rd-party tool) and stores in ClickHouse dbms. On the fly enriches data using geo-coding and device detection services. Results are stored and optionally can be sent to the third-party services via API. Comes as a part of Alcolytics platform.
 
 Сервис принимает данные от AlcoJS и сторонних сервисов, обогащает данными сервисов гео-кодинга и определения типа клиентского устройства. Результат  сохраняется в колоночную СУБД ClickHouse. Опционально передает во внешние сервисы по api. 
 
