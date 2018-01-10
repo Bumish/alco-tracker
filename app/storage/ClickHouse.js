@@ -36,7 +36,8 @@ class ClickHouse {
 
       for (let [table, writer] of writers) {
 
-        writer.close()
+        writer
+          .close()
           .then(filename => {
             this.uploader.uploadFile(filename, table);
           });

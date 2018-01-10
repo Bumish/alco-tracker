@@ -67,7 +67,7 @@ class CHBufferWriter {
   }
 
   close(){
-
+    // TODO: разобраться почему тут иногда возникает ошибка
     return fs.closeAsync(this.fd)
       .then(() => {
         return this.objectName;
