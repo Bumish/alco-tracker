@@ -1,12 +1,11 @@
 'use strict';
 
 const simpleflake = require('simpleflake');
-const stats = require('measured').createCollection();
+const pick = require('es6-pick');
+
 const CHWriter = require('./writers/ClickHouse');
 const MPWriter = require('./writers/MixPanel');
 const HttpConnector = require('./HttpConnector');
-const pick = require('es6-pick');
-const debug = require('debug')('http');
 
 class TrackerService {
 
@@ -23,9 +22,7 @@ class TrackerService {
       new MPWriter(config.mixpanel)
     ];
 
-    this.writers = availableWriters.filter(e => {
-      return e.isConfigured()
-    });
+    this.writers = availableWriters.filter(e => e.isConfigured());
   }
 
   async init() {
@@ -56,7 +53,7 @@ class TrackerService {
 
           msg.device = Object.assign({
             type: 'bot',
-            brand: dd.producer && d.producer.name,
+            brand: dd.producer && dd.producer.name,
             model: dd.bot && dd.bot.name
           }, msg.device || {});
 

@@ -1,9 +1,11 @@
 'use strict';
 
-const Promise = require('bluebird');
-const fs = Promise.promisifyAll(require('fs'));
+const fs = require('fs');
 
+const Promise = require('bluebird');
 const got = require('got');
+
+const afs = Promise.promisifyAll(fs);
 
 class CHUploader {
 
@@ -11,7 +13,7 @@ class CHUploader {
 
     options = options || {};
 
-    this.ch_url = options.protocol + '//' + options.hostname + ':' + options.port;
+    this.ch_url = `${options.protocol  }//${  options.hostname  }:${  options.port}`;
     this.db = options.db;
     this.httpOptions = {
       timeout: 5000
@@ -25,15 +27,15 @@ class CHUploader {
       query: `INSERT INTO ${table} FORMAT JSONEachRow`
     };
 
-    fs.createReadStream(fn)
-      .pipe(got.stream.post(this.ch_url, Object.assign({}, this.httpOptions, {query: query}) ))
-      .on('error', (error, body, response) => {
+    afs.createReadStream(fn)
+      .pipe(got.stream.post(this.ch_url, Object.assign({}, this.httpOptions, {query}) ))
+      .on('error', error => {
         console.log('err', error);
       })
-      .on('response', (response) => {
+      .on('response', response => {
         if(response.statusCode === 200){
 
-          fs.unlinkAsync(fn)
+          afs.unlinkAsync(fn)
             .then(() => {});
 
         } else {

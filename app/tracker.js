@@ -1,12 +1,13 @@
 'use strict';
 
+const path = require('path');
+
 require('dotenv').config();
 
 const TrackerService = require('./TrackerService');
 const TrackerWebApi = require('./TrackerWebApi');
 const LocalConfig = require('./config/LocalConfig');
 const Storage = require('./Storage');
-const path = require('path');
 
 const localConfig = new LocalConfig({
   path: path.resolve(__dirname, '..', 'config')

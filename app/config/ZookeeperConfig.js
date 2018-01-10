@@ -5,7 +5,7 @@ const zk = require('node-zookeeper-client-async');
 
 class ZookeeperConfig {
 
-  constructor(options){
+  constructor(options) {
 
     console.log('Constructing zookeeper configurator');
 
@@ -15,26 +15,26 @@ class ZookeeperConfig {
       path: '/test'
     }, options);
 
-    this.connString = this.options.host + ':' + this.options.port;
-    this.configPath = this.options.path + '/config';
+    this.connString = `${this.options.host}:${this.options.port}`;
+    this.configPath = `${this.options.path}/config`;
 
   }
 
-  async connect(){
+  async connect() {
 
     this.client = zk.createAsyncClient(this.connString);
     await this.client.connectAsync();
 
   }
 
-  async enshureStruct(){
+  async enshureStruct() {
 
     await this.client.mkdirpAsync(this.configPath);
 
   }
 
 
-  async getData(path){
+  async getData(path) {
 
     const data = {};
     const nodes = await this.client.getChildrenAsync(path);
@@ -54,7 +54,7 @@ class ZookeeperConfig {
 
   }
 
-  async load(){
+  async load() {
 
     await this.connect();
     await this.enshureStruct();

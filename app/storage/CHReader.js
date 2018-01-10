@@ -1,7 +1,6 @@
 'use strict';
 
 const got = require('got');
-const url = require('url');
 
 const dsnParse = require('../functions/dsnParse');
 
@@ -19,7 +18,7 @@ class CHReader {
     this.ch_port = connectionOptions.port || '8123';
 
 
-    this.ch_url = this.ch_host + ':' + this.ch_port;
+    this.ch_url = `${this.ch_host  }:${  this.ch_port}`;
 
     console.log('construction CH reader', this.ch_host);
 
@@ -30,16 +29,16 @@ class CHReader {
 
     console.log('quering data from clickhouse', q);
 
-    let url_query = {
+    const url_query = {
       database: this.ch_db,
       query: q
     };
 
     return got(this.ch_url, {query: url_query})
-      .then(response => {
+      .then(response =>
         // console.log(response.body);
-        return response.body;
-      })
+         response.body
+      )
       .catch(error => {
         console.log(error.response.body);
       });
@@ -50,7 +49,7 @@ class CHReader {
 
     console.log('quering data from clickhouse', q);
 
-    let url_query = {
+    const url_query = {
       database: this.ch_db,
       query: q
     };

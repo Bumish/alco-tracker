@@ -2,11 +2,12 @@
 
 const Mixpanel = require('mixpanel');
 const pick = require('es6-pick');
+
 const flatten = require('../functions/flatten');
 
 class MixPanel {
 
-  constructor(options){
+  constructor(options) {
 
     this.defaults = {
       uploadInterval: 1, // seconds
@@ -18,7 +19,9 @@ class MixPanel {
 
     this.queue = [];
 
-    if(!this.configured) return;
+    if (!this.configured) {
+      return;
+    }
 
     this.mp = Mixpanel.init(this.options.token, {
       protocol: 'https'
@@ -29,35 +32,35 @@ class MixPanel {
     console.log('Mixpanel writer activated');
   }
 
-  isConfigured(){
+  isConfigured() {
     return this.configured;
   }
 
-  upload(){
+  upload() {
 
     const calls = this.queue;
     this.queue = [];
 
-    if(calls.length > 0){
+    if (calls.length > 0) {
 
       this.mp.track_batch(calls.map(call => {
         const {name, ...rest} = call;
         return {
           event: name,
           properties: rest
-        }
+        };
       }));
     }
-  };
+  }
 
-  push(msg){
+  push(msg) {
 
 
-    if(!this.configured){
+    if (!this.configured) {
       return;
     }
 
-    const mpEvent = flatten(pick(msg, 'name', 'id', 'ip', 'projectId', 'session',  'browser', 'client', 'device',
+    const mpEvent = flatten(pick(msg, 'name', 'id', 'ip', 'projectId', 'session', 'browser', 'client', 'device',
       'ymClientId', 'gaClientId', 'os', 'country', 'region', 'city', 'page', 'data', 'user', 'library', 'perf'
     ));
 

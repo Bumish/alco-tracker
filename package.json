@@ -25,6 +25,7 @@
     "dotenv": "^4.0.0",
     "ejs": "^2.5.7",
     "es6-pick": "^1.0.0",
+    "eslint-config-google": "^0.9.1",
     "event-stream": "^3.3.4",
     "express": "^4.16.2",
     "got": "^8.0.1",
@@ -38,7 +39,11 @@
     "supports-color": "^5.1.0"
   },
   "devDependencies": {
+    "@jetbrains/eslint-config": "^3.0.2",
+    "babel-eslint": "^8.2.1",
     "depcheck": "^0.6.8",
+    "eslint": "^4.15.0",
+    "eslint-plugin-import": "^2.8.0",
     "nodemon": "^1.12.1"
   }
 }

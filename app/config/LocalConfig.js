@@ -1,15 +1,14 @@
 'use strict';
 
-const yaml = require('js-yaml');
-const ejs = require('ejs');
-const Promise = require('bluebird');
-const fs = Promise.promisifyAll(require('fs'));
 const path = require('path');
+const fs = require('fs');
 
+const ejs = require('ejs');
+const yaml = require('js-yaml');
 
 class LocalConfig {
 
-  constructor(options){
+  constructor(options) {
 
     this.defaults = {
       path: '../../config',
@@ -22,9 +21,9 @@ class LocalConfig {
   }
 
 
-  async load(){
+  async load() {
 
-    if(!fs.existsSync(this.configFn)){
+    if (!fs.existsSync(this.configFn)) {
       return console.error('config not found');
     }
 
@@ -35,7 +34,6 @@ class LocalConfig {
 
   }
 }
-
 
 
 module.exports = LocalConfig;

@@ -1,13 +1,14 @@
 "use strict";
 
+const pick = require('es6-pick');
+const Joi = require('joi');
+
 const CHBufferWriter = require('../storage/CHBufferWriter');
 const CHUploader = require('../storage/CHUploader');
 const dsnParse = require('../functions/dsnParse');
 const flatten = require('../functions/flatten');
 const unzip = require('../functions/unzip');
-const pick = require('es6-pick');
 const eventSchema = require('../schema/clickHouseEvent');
-const Joi = require('joi');
 
 const DEFAULT_TABLE = 'events';
 
@@ -49,7 +50,7 @@ class ClickHouse {
     const writers = this.writers;
     this.writers = new Map();
 
-    for (let [table, writer] of writers) {
+    for (const [table, writer] of writers) {
       writer.close()
         .then(filename => {
           this.uploader.uploadFile(filename, table);

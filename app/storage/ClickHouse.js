@@ -1,8 +1,5 @@
 "use strict";
 
-const JSONStream = require('JSONStream');
-const es = require('event-stream');
-
 const dsnParse = require('../functions/dsnParse');
 
 const CHUploader = require('./CHUploader');
@@ -34,7 +31,7 @@ class ClickHouse {
       const writers = this.writers;
       this.writers = new Map();
 
-      for (let [table, writer] of writers) {
+      for (const [table, writer] of writers) {
 
         writer
           .close()

@@ -18,7 +18,7 @@ class HTTPConnector {
       timeout: 10000,
       retries: 2,
       json: options.json === true
-    }
+    };
   }
 
 
@@ -28,24 +28,23 @@ class HTTPConnector {
 
     debug(`quering ${url}`);
 
-    return got(url, Object.assign({}, this.gotOptions, {query: params}))
-      .then(response => {
+    return got(url, Object.assign({}, this.gotOptions, {query: params})).then(
+      response => {
 
         const {body} = response;
         debug(`query result success:${body && body.success}`);
 
         return body;
 
-      })
-      .catch(err => {
+      }).catch(err => {
 
-        console.error(err);
-        return {
-          success: false,
-          error: err.message
-        }
+      console.error(err);
+      return {
+        success: false,
+        error: err.message
+      };
 
-      });
+    });
 
   }
 }
