@@ -144,7 +144,7 @@ class TrackerHttpApi {
 
     });
 
-    this.app.use((err, req, res) => {
+    this.app.use((err, req, res, next) => {
 
       reqsStat.meter('error').mark();
 
