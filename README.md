@@ -42,17 +42,19 @@ This service which collects data via HTTP (AlcoJS, 3rd-party tool) and stores in
 ## Кастомный конфиг
 
 Имеется возможность перезаписать некоторые параметры конфигурации трекера. 
-Для этого необходимо прокинуть в докер дополнительную директорию
+Для этого необходимо прокинуть в докер дополнительную директорию, предварительно создав ее.
     
     -v ./custom-config:/usr/src/app/config/custom \
     
+
 Пример custom/config.yml
 
     client:
       common:
         trackClicks: true
         trackForms: true
-        trackActivity: true
+        trackActivity: false
+        allowHTTP: true
 
 
 ## Поддерживаемые переменные окружения
