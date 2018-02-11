@@ -29,8 +29,8 @@ class CHUploader {
 
     afs.createReadStream(fn)
       .pipe(got.stream.post(this.ch_url, Object.assign({}, this.httpOptions, {query}) ))
-      .on('error', error => {
-        console.log('err', error);
+      .on('error', (err, body, res) => {
+        console.log('err', err);
       })
       .on('response', response => {
         if(response.statusCode === 200){

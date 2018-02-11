@@ -20,7 +20,10 @@ const localConfig = new LocalConfig({
 
     console.log('Starting Alcolytics tracker');
 
-    const config = await localConfig.load();
+    const config = await localConfig.serviceConfig();
+
+    console.log('config', config);
+
     const storage = new Storage(config);
     const trackerService = new TrackerService(config, storage);
     const trackerWebApi = new TrackerWebApi(config, trackerService);

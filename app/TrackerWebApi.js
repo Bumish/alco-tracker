@@ -58,6 +58,12 @@ class TrackerHttpApi {
     const uidParam = this.options.uidParam;
     const tp = this.options.trustProxy;
 
+    // Client options
+
+    const {client} = options;
+
+    this.clientOptions = client && client.common || {};
+
     this.app = express();
     this.app.set('x-powered-by', false);
     this.app.set('trust proxy', tp);
@@ -123,7 +129,13 @@ class TrackerHttpApi {
       reqsStat.meter('lib').mark();
       this.statsd.increment('reqs.lib');
 
-      const cmd = new Buffer(`window.alco&&window.alco('configure',{initialUid:'${req.uid}'});`);
+      const clientConfig = {
+        initialUid: req.uid
+      };
+
+      Object.assign(clientConfig, this.clientOptions);
+
+      const cmd = new Buffer(`window.alco&&window.alco('configure',${JSON.stringify(clientConfig)});`);
       res.send(Buffer.concat([cmd, this.lib]));
 
       rtHistLib.update(duration(req.startAt));

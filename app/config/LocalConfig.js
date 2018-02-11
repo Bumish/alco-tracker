@@ -12,27 +12,50 @@ class LocalConfig {
 
     this.defaults = {
       path: '../../config',
-      fn: 'config.yaml'
+      serviceConfig: 'config.yml',
+      customConfig: 'custom/config.yml'
     };
 
     this.options = Object.assign({}, this.defaults, options);
-    this.configFn = path.join(this.options.path, this.options.fn);
+    this.serviceConfigFn = path.join(this.options.path, this.options.serviceConfig);
+    this.customConfigFn = path.join(this.options.path, this.options.customConfig);
 
   }
 
+  loadConfig(fn){
 
-  async load() {
-
-    if (!fs.existsSync(this.configFn)) {
-      return console.error('config not found');
-    }
-
-    const rawConfig = fs.readFileSync(this.configFn).toString();
+    const rawConfig = fs.readFileSync(fn).toString();
     const compiledConfig = ejs.render(rawConfig, {env: process.env});
 
     return yaml.load(compiledConfig);
 
   }
+
+  async serviceConfig() {
+
+    if (!fs.existsSync(this.serviceConfigFn)) {
+      return console.error('config not found');
+    }
+
+
+    const custom = await this.customConfig();
+    const main = this.loadConfig(this.serviceConfigFn);
+
+    return Object.assign(main, custom);
+
+  }
+
+  async customConfig() {
+
+    if (!fs.existsSync(this.customConfigFn)) {
+      console.log('custom config not present');
+      return {};
+    }
+
+    return this.loadConfig(this.customConfigFn);
+
+  }
+
 }
 
 

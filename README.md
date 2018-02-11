@@ -39,6 +39,22 @@ This service which collects data via HTTP (AlcoJS, 3rd-party tool) and stores in
 остается лежать до тех пор, пока до него не дойдет очередь на ручную обработку.
 Файлы записываются в директорию контейнера /usr/src/app/upload_ch
 
+## Кастомный конфиг
+
+Имеется возможность перезаписать некоторые параметры конфигурации трекера. 
+Для этого необходимо прокинуть в докер дополнительную директорию
+    
+    -v ./custom-config:/usr/src/app/config/custom \
+    
+Пример custom/config.yml
+
+    client:
+      common:
+        trackClicks: true
+        trackForms: true
+        trackActivity: true
+
+
 ## Поддерживаемые переменные окружения
 
     SXGEO_SERVICE=host:port
