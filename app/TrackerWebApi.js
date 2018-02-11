@@ -19,7 +19,13 @@ class TrackerHttpApi {
 
   constructor(options, services) {
 
-    this.options = Object.assign({}, this.defaults, options.http);
+    const httpDefaults = {
+      port: 8080,
+      uidParam: 'uid'
+    };
+
+    this.options = options;
+    this.options.http = Object.assign({}, httpDefaults, options.http);
 
     console.log('Starting HTTP api. Environment:', this.options.isProduction ? 'production' : 'development');
     console.log(`Configured statsd at host ${options.statsd.host}`);
@@ -31,16 +37,13 @@ class TrackerHttpApi {
 
     // Tracker
     this.trackerService = trackerService;
-    this.defaults = {
-      port: 8080,
-      uidParam: 'uid'
-    };
+
 
 
     this.lib = null;
 
-    const uidParam = this.options.uidParam;
-    const tp = this.options.trustProxy;
+    const uidParam = this.options.http.uidParam;
+    const tp = this.options.http.trustProxy;
 
     // Client options
 
@@ -70,7 +73,7 @@ class TrackerHttpApi {
 
       req.uid = isValidUid(receivedUid) && receivedUid || this.trackerService.generateUid();
 
-      res.cookie(uidParam, req.uid, {expires: new Date(Date.now() + this.options.cookieMaxAge * 1000), httpOnly: true});
+      res.cookie(uidParam, req.uid, {expires: new Date(Date.now() + this.options.http.cookieMaxAge * 1000), httpOnly: true});
 
       next();
 
@@ -149,9 +152,9 @@ class TrackerHttpApi {
     console.log(`loading client library (${fn}).`);
     this.lib = await afs.readFileAsync(path.join(__dirname, '..', 'alcojs', fn));
     console.log(`loaded. size: ${this.lib.length}`);
-    console.log('starting http api on port:', this.options.port);
+    console.log('starting http api on port:', this.options.http.port);
     console.log(`to access stats: /stat?key=${this.stat.getSecret()}`);
-    this.app.listen(this.options.port, this.options.host);
+    this.app.listen(this.options.http.port, this.options.http.host);
 
   }
 }

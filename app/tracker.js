@@ -22,6 +22,8 @@ const localConfig = new LocalConfig({
     console.log('Starting Alcolytics tracker');
 
     const config = await localConfig.serviceConfig();
+    config.isProduction = process.env.NODE_ENV === 'production';
+
     console.log('config', config);
 
     const services = {

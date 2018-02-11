@@ -40,10 +40,7 @@ class LocalConfig {
     const custom = await this.customConfig();
     const main = this.loadConfig(this.serviceConfigFn);
 
-    const config = Object.assign(main, custom);
-    config.isProduction = process.env.NODE_ENV === 'production';
-
-    return config;
+    return Object.assign(main, custom);
 
   }
 
