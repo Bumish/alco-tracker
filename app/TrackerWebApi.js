@@ -26,9 +26,13 @@ class TrackerHttpApi {
 
     this.options = options;
     this.options.http = Object.assign({}, httpDefaults, options.http);
+    this.cookieMaxAge = this.options.http.cookieMaxAge;
+
+    const {cookieMaxAge, trustProxy, uidParam} = this.options.http;
 
     console.log('Starting HTTP api. Environment:', this.options.isProduction ? 'production' : 'development');
     console.log(`Configured statsd at host ${options.statsd.host}`);
+    console.log(`HTTP options: cookieMaxAge: ${cookieMaxAge}`);
 
     const {trackerService, stat} = services;
 
@@ -38,22 +42,16 @@ class TrackerHttpApi {
     // Tracker
     this.trackerService = trackerService;
 
-
-
-    this.lib = null;
-
-    const uidParam = this.options.http.uidParam;
-    const tp = this.options.http.trustProxy;
-
     // Client options
 
     const {client} = options;
+    this.lib = null;
 
     this.clientOptions = client && client.common || {};
 
     this.app = express();
     this.app.set('x-powered-by', false);
-    this.app.set('trust proxy', tp);
+    this.app.set('trust proxy', trustProxy);
     this.app.set('etag', 'strong');
     this.app.use(cookieParser());
     this.app.use(cors({
@@ -61,9 +59,11 @@ class TrackerHttpApi {
       credentials: true
     }));
 
-    console.log('Trust proxy:', tp && tp.join(','));
+    console.log('Trust proxy:', trustProxy && trustProxy.join(','));
 
     this.app.use((req, res, next) => {
+
+      this.stat.mark('request');
 
       // Track handling time
       req.startAt = timeMark();
@@ -73,7 +73,7 @@ class TrackerHttpApi {
 
       req.uid = isValidUid(receivedUid) && receivedUid || this.trackerService.generateUid();
 
-      res.cookie(uidParam, req.uid, {expires: new Date(Date.now() + this.options.http.cookieMaxAge * 1000), httpOnly: true});
+      res.cookie(uidParam, req.uid, {expires: new Date(Date.now() + cookieMaxAge * 1000), httpOnly: true});
 
       next();
 
