@@ -9,7 +9,9 @@ const HttpConnector = require('./HttpConnector');
 
 class TrackerService {
 
-  constructor(config, storage) {
+  constructor(config, services) {
+
+    const {storage} = services;
 
     this.config = config;
     this.storage = storage;

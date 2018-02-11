@@ -37,11 +37,13 @@ class LocalConfig {
       return console.error('config not found');
     }
 
-
     const custom = await this.customConfig();
     const main = this.loadConfig(this.serviceConfigFn);
 
-    return Object.assign(main, custom);
+    const config = Object.assign(main, custom);
+    config.isProduction = process.env.NODE_ENV === 'production';
+
+    return config;
 
   }
 

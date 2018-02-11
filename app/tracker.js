@@ -6,6 +6,7 @@ require('dotenv').config();
 
 const TrackerService = require('./TrackerService');
 const TrackerWebApi = require('./TrackerWebApi');
+const ServiceStat = require('./ServiceStat');
 const LocalConfig = require('./config/LocalConfig');
 const Storage = require('./Storage');
 
@@ -21,21 +22,24 @@ const localConfig = new LocalConfig({
     console.log('Starting Alcolytics tracker');
 
     const config = await localConfig.serviceConfig();
-
     console.log('config', config);
 
-    const storage = new Storage(config);
-    const trackerService = new TrackerService(config, storage);
-    const trackerWebApi = new TrackerWebApi(config, trackerService);
+    const services = {
+      stat: new ServiceStat(config),
+      storage: new Storage(config)
+    };
+
+    services.trackerService = new TrackerService(config, services);
+    services.trackerWebApi = new TrackerWebApi(config, services);
 
     // Initializing storage
-    await storage.init();
+    await services.storage.init();
 
     // Initializing main service
-    await trackerService.init();
+    await services.trackerService.init();
 
     // Starting HTTP API
-    await trackerWebApi.start();
+    await services.trackerWebApi.start();
 
     console.log('Ready');
 
