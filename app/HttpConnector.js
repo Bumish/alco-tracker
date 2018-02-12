@@ -46,13 +46,10 @@ class HTTPConnector {
       return cached;
     }
 
-    console.log(`quering ${url}`);
-
     return got(url, Object.assign({}, this.gotOptions, {query: params})).then(
       response => {
 
         const {body} = response;
-        console.log(`query result success:${body && body.success}, isBot:${body && body.isBot}`);
 
         if (body && body.success) {
           this.cache.set(requestKey, JSON.stringify(body));
@@ -62,7 +59,7 @@ class HTTPConnector {
 
       }).catch(err => {
 
-      console.error(err);
+      console.error('HTTPConnector', err, err.response.body);
       return {
         success: false,
         error: err.message
