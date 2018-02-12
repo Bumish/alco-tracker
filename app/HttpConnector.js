@@ -24,7 +24,7 @@ class HTTPConnector {
     this.options = options;
     this.url = tmplCompile(options.url);
     this.gotOptions = {
-      timeout: 10000,
+      timeout: 5000,
       retries: 2,
       json: options.json === true
     };
@@ -46,13 +46,13 @@ class HTTPConnector {
       return cached;
     }
 
-    debug(`quering ${url}`);
+    console.log(`quering ${url}`);
 
     return got(url, Object.assign({}, this.gotOptions, {query: params})).then(
       response => {
 
         const {body} = response;
-        debug(`query result success:${body && body.success}`);
+        console.log(`query result success:${body && body.success}, isBot:${body && body.isBot}`);
 
         if (body && body.success) {
           this.cache.set(requestKey, JSON.stringify(body));
@@ -69,7 +69,6 @@ class HTTPConnector {
       };
 
     });
-
   }
 }
 
