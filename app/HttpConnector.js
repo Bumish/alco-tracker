@@ -53,6 +53,8 @@ class HTTPConnector {
 
         if (body && body.success) {
           this.cache.set(requestKey, JSON.stringify(body));
+        } else {
+          console.error('Wrong answer', body);
         }
 
         return body;
