@@ -43,7 +43,7 @@ class HTTPConnector {
 
     const cached = this.cache.get(requestKey);
     if (cached) {
-      return cached;
+      return JSON.parse(cached);
     }
 
     return got(url, Object.assign({}, this.gotOptions, {query: params})).then(
