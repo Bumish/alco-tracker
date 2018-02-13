@@ -56,6 +56,15 @@ class TrackerHttpApi {
     this.app.set('x-powered-by', false);
     this.app.set('trust proxy', trustProxy);
     this.app.set('etag', 'strong');
+    this.app.use((req, res, next) => {
+      // hack to handle json body without json headers
+      if (req.path === '/track' && req.method === 'POST') {
+        req.headers['content-type'] = 'application/json';
+      }
+      next();
+    });
+    this.app.use(bodyParser.json({limit: '5kb'}));
+    this.app.use(bodyParser.urlencoded({extended: false, limit: '5kb'}));
     this.app.use(cookieParser());
     this.app.use(cors({
       origin: true,
@@ -90,21 +99,20 @@ class TrackerHttpApi {
 
     });
 
-    this.app.post('/track', bodyParser.json({type: '*/*'}), (req, res) => {
+    this.app.post('/track', (req, res) => {
 
       this.stat.mark('trackPost');
-
-      alcoRequesrSchema.validate(req.body, (err, value) => {
-        if (err) {
-          console.log(err);
-        }
-      });
-
 
       const msg = Object.assign({}, req.body, {
         uid: req.uid,
         ip: req.ip,
         userAgent: req.headers['user-agent']
+      });
+
+      alcoRequesrSchema.validate(msg, (err, value) => {
+        if (err) {
+          console.log(err);
+        }
       });
 
       this.trackerService.track(msg).then(() => {
@@ -119,9 +127,7 @@ class TrackerHttpApi {
 
     this.app.get('/lib.js', (req, res) => {
 
-
       this.stat.mark('lib');
-
       const clientConfig = {
         initialUid: req.uid
       };

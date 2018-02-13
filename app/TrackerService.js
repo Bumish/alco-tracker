@@ -72,20 +72,26 @@ class TrackerService {
     return msg;
   }
 
+  async webhook(msg) {
+    msg.id = this.generateEventId();
+    msg.time = new Date();
+
+    //TODO save webhooks
+
+  }
+
   async track(msg) {
 
     msg.id = this.generateEventId();
     msg.time = new Date();
 
-    await this.enrich(msg)
-      .then(msg => {
-        this.writers.map(w => {
-          w.push(Object.assign({}, msg));
-        });
-      })
-      .catch(e => {
-        console.error(e);
+    await this.enrich(msg).then(msg => {
+      this.writers.map(w => {
+        w.push(Object.assign({}, msg));
       });
+    }).catch(e => {
+      console.error(e);
+    });
   }
 
   generateEventId() {

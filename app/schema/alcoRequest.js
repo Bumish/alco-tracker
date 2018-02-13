@@ -3,6 +3,8 @@
 const Joi = require('joi');
 
 module.exports = Joi.object().keys({
+  userAgent: Joi.string().required(),
+  ip: Joi.string().required(),
   browser: Joi.object().keys({
     if: Joi.array(),
     sr: Joi.object().keys({
