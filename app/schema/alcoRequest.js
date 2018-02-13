@@ -70,6 +70,7 @@ module.exports = Joi.object().keys({
   session: Joi.object().keys({
     eventNum: Joi.number().integer().required(),
     pageNum: Joi.number().integer().required(),
+    refHost: Joi.string().optional(),
     start: Joi.number().integer().required(),
     num: Joi.number().integer().required(),
     hasMarks: Joi.boolean().required(),
