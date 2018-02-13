@@ -141,6 +141,24 @@ class TrackerHttpApi {
 
     });
 
+    this.app.all('/webhook/:service/:name', (req, res) => {
+
+      this.stat.mark('webhook');
+
+      const msg = {
+        service: req.params.service,
+        name: req.param.name,
+        ip: req.ip,
+        data: Object.assign({}, req.query, req.body)
+      };
+      res.end();
+
+      this.trackerService.webhook(msg).then(() => {
+        this.stat.histPush('webhookHandled', timeDuration(req.startAt));
+      });
+
+    });
+
     this.app.get('/stat', (req, res) => {
 
       res.json(this.stat.checkSecret(req.query.key)
