@@ -75,6 +75,7 @@ module.exports = Joi.object().keys({
     num: Joi.number().integer().required(),
     hasMarks: Joi.boolean().required(),
     type: Joi.string().required(),
+    engine: Joi.string().optional(),
     refHash: Joi.any().strip(),
     marks: Joi.object().options({allowUnknown: true}).required()
   }).required(),
