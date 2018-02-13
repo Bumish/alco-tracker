@@ -12,8 +12,11 @@ const cors = require('cors');
 const isValidUid = require('./functions/isValidUid');
 const emptyGif = require('./functions/emptyGif');
 
+const Joi = require('joi');
+
 const afs = Promise.promisifyAll(fs);
 const {timeMark, timeDuration} = require('./ServiceStat');
+const alcoRequesrSchema = require('./schema/alcoRequest');
 
 class TrackerHttpApi {
 
@@ -90,6 +93,13 @@ class TrackerHttpApi {
     this.app.post('/track', bodyParser.json({type: '*/*'}), (req, res) => {
 
       this.stat.mark('trackPost');
+
+      alcoRequesrSchema.validate(req.body, (err, value) => {
+        if (err) {
+          console.log(err);
+        }
+      });
+
 
       const msg = Object.assign({}, req.body, {
         uid: req.uid,
