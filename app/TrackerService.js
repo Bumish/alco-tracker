@@ -76,7 +76,9 @@ class TrackerService {
     msg.id = this.generateEventId();
     msg.time = new Date();
 
-    //TODO save webhooks
+    this.writers.map(w => {
+      w.send_webhook(Object.assign({}, msg));
+    });
 
   }
 
@@ -87,7 +89,7 @@ class TrackerService {
 
     await this.enrich(msg).then(msg => {
       this.writers.map(w => {
-        w.push(Object.assign({}, msg));
+        w.send_event(Object.assign({}, msg));
       });
     }).catch(e => {
       console.error(e);

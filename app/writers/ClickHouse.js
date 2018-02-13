@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 
 const pick = require('es6-pick');
 const Joi = require('joi');
@@ -10,7 +10,8 @@ const flatten = require('../functions/flatten');
 const unzip = require('../functions/unzip');
 const eventSchema = require('../schema/clickHouseEvent');
 
-const DEFAULT_TABLE = 'events';
+const EVENTS_TABLE = 'events';
+const WEBHOOKS_TABLE = 'webhooks';
 
 class ClickHouse {
 
@@ -41,6 +42,13 @@ class ClickHouse {
     return this.configured;
   }
 
+  getWriter(table) {
+    if (!this.writers.has(table)) {
+      this.writers.set(table, new CHBufferWriter(table));
+    }
+    return this.writers.get(table);
+  }
+
   upload() {
 
     if (!this.configured) {
@@ -51,26 +59,45 @@ class ClickHouse {
     this.writers = new Map();
 
     for (const [table, writer] of writers) {
-      writer.close()
-        .then(filename => {
-          this.uploader.uploadFile(filename, table);
-        });
+      writer.close().then(filename => {
+        this.uploader.uploadFile(filename, table);
+      });
     }
   }
 
-  push(msg) {
+
+  send_webhook(msg) {
 
     if (!this.configured) {
       return;
     }
 
-    if (!this.writers.has(DEFAULT_TABLE)) {
-      this.writers.set(DEFAULT_TABLE, new CHBufferWriter(DEFAULT_TABLE));
+    let record = pick(msg, 'id', 'projectId', 'service', 'action', 'request_ip');
+
+    record.timestamp = msg.time.getTime();
+    record.dateTime = msg.time.toISOString().slice(0, 19).replace('T', ' ');
+    record.date = record.dateTime.substr(0, 10);
+
+    record.data = unzip(msg.data, String, String);
+    record = flatten(record, '.');
+
+    this.getWriter(WEBHOOKS_TABLE).push(record);
+
+  }
+
+  send_event(msg) {
+
+    if (!this.configured) {
+      return;
     }
 
     const {page, session, library, data, client, browser, country, region, city, os, device, user, ...rest} = msg;
 
     let record = pick(rest, 'id', 'projectId', 'name', 'uid', 'ip', 'userAgent');
+
+    record.timestamp = rest.time.getTime();
+    record.dateTime = rest.time.toISOString().slice(0, 19).replace('T', ' ');
+    record.date = record.dateTime.substr(0, 10);
 
     record.page = pick(page, 'url', 'referrer', 'title');
 
@@ -95,25 +122,20 @@ class ClickHouse {
     record.city = pick(city || {}, 'id', 'name_ru', 'name_en');
     record.os = pick(os || {}, 'name', 'version', 'platform');
     record.device = pick(device || {}, 'type', 'brand', 'model');
-    record.timestamp = rest.time.getTime();
-    record.dateTime = rest.time.toISOString().slice(0, 19).replace('T', ' ');
-    record.date = record.dateTime.substr(0, 10);
     record.isBot = typeof rest.isBot === 'boolean' ? Number(rest.isBot) : -1;
     record.data = unzip(data, String, String);
 
     record = flatten(record, '_');
 
-    Joi.validate(record, eventSchema)
-      .then(values => {
+    Joi.validate(record, eventSchema).then(values => {
 
-        this.writers.get(DEFAULT_TABLE).push(values);
+      this.getWriter(EVENTS_TABLE).push(values);
 
-      })
-      .catch(err => {
+    }).catch(err => {
 
-        console.error(err);
+      console.error(err);
 
-      });
+    });
 
 
   }

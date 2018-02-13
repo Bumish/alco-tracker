@@ -54,14 +54,14 @@ class HTTPConnector {
         if (body && body.success) {
           this.cache.set(requestKey, JSON.stringify(body));
         } else {
-          console.error('Wrong answer', body);
+          console.error('HTTPConnector: Wrong answer', body);
         }
 
         return body;
 
       }).catch(err => {
 
-      console.error('HTTPConnector', err, err.response.body);
+      console.error(`HTTPConnector| url:${url}; message:${err.message}; body:${err.response && err.response.body}`, );
       return {
         success: false,
         error: err.message

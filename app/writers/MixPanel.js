@@ -53,7 +53,18 @@ class MixPanel {
     }
   }
 
-  push(msg) {
+
+  send_webhook(msg) {
+
+    msg.time = Math.round(msg.time.getTime() / 1000);
+    msg.name = `${msg.service}-${msg.action}`;
+
+    this.queue.push(msg);
+
+  }
+
+
+  send_event(msg) {
 
 
     if (!this.configured) {
@@ -64,8 +75,8 @@ class MixPanel {
       'ymClientId', 'gaClientId', 'os', 'country', 'region', 'city', 'page', 'data', 'user', 'library', 'perf'
     ));
 
-    mpEvent.distinct_id = msg.uid;
     mpEvent.time = Math.round(msg.time.getTime() / 1000);
+    mpEvent.distinct_id = msg.uid;
 
     this.queue.push(mpEvent);
 

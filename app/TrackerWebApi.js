@@ -16,7 +16,7 @@ const Joi = require('joi');
 
 const afs = Promise.promisifyAll(fs);
 const {timeMark, timeDuration} = require('./ServiceStat');
-const alcoRequesrSchema = require('./schema/alcoRequest');
+const alcoRequestSchema = require('./schema/alcoRequest');
 
 class TrackerHttpApi {
 
@@ -109,9 +109,10 @@ class TrackerHttpApi {
         userAgent: req.headers['user-agent']
       });
 
-      alcoRequesrSchema.validate(msg, (err, value) => {
+      alcoRequestSchema.validate(msg, (err, value) => {
         if (err) {
           console.log(err);
+          console.log('features:', msg.cf);
         }
       });
 
@@ -141,17 +142,19 @@ class TrackerHttpApi {
 
     });
 
-    this.app.all('/webhook/:service/:name', (req, res) => {
+    this.app.all('/webhook/:projectId/:service/:action', (req, res) => {
 
       this.stat.mark('webhook');
 
       const msg = {
+        projectId: req.params.projectId,
         service: req.params.service,
-        name: req.param.name,
-        ip: req.ip,
-        data: Object.assign({}, req.query, req.body)
+        action: req.params.action,
+        data: Object.assign({}, req.body, req.query),
+        request_ip: req.ip
       };
-      res.end();
+
+      res.json({result: 'queued', msg});
 
       this.trackerService.webhook(msg).then(() => {
         this.stat.histPush('webhookHandled', timeDuration(req.startAt));

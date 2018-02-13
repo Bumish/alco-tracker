@@ -30,8 +30,15 @@ module.exports = Joi.object().keys({
     product: Joi.string().required(),
     tz: Joi.string().allow('').required(),
     tzOffset: Joi.number().integer().required(),
-    ts: Joi.number().integer().required(),
+    ts: Joi.number().integer().required()
   }).required(),
+  cf: Joi.object().keys({
+    locstor: Joi.boolean().required(),
+    addel: Joi.boolean().required(),
+    promise: Joi.boolean().required(),
+    sbeacon: Joi.boolean().required(),
+    atob: Joi.boolean().required(),
+  }).optional(),
   data: Joi.object().keys({}).options({allowUnknown: true}).required(),
   library: Joi.object().keys({
     libver: Joi.number().integer().required(),
@@ -70,16 +77,16 @@ module.exports = Joi.object().keys({
   projectId: Joi.number().integer().required(),
   uid: Joi.string().regex(/^[0-9]+$/),
   session: Joi.object().keys({
-    eventNum: Joi.number().integer().required(),
-    pageNum: Joi.number().integer().required(),
+    eventNum: Joi.number().integer(),
+    pageNum: Joi.number().integer(),
     refHost: Joi.string().optional(),
-    start: Joi.number().integer().required(),
-    num: Joi.number().integer().required(),
-    hasMarks: Joi.boolean().required(),
-    type: Joi.string().required(),
+    start: Joi.number().integer().optional(),
+    num: Joi.number().integer().optional(),
+    hasMarks: Joi.boolean().optional(),
+    type: Joi.string().optional(),
     engine: Joi.string().optional(),
-    refHash: Joi.any().strip(),
-    marks: Joi.object().options({allowUnknown: true}).required()
+    refHash: Joi.any().optional().strip(),
+    marks: Joi.object().options({allowUnknown: true}).optional()
   }).required(),
   user: Joi.object().keys({}).options({allowUnknown: true}).required()
 });
