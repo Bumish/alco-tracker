@@ -58,7 +58,6 @@ class ClickHouse {
     }
   }
 
-
   push(msg) {
 
     if (!this.configured) {

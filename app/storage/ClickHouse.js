@@ -37,6 +37,9 @@ class ClickHouse {
           .close()
           .then(filename => {
             this.uploader.uploadFile(filename, table);
+          })
+          .catch(e => {
+            console.log('ClickHouse: Error while processing bach.', e);
           });
       }
     }, this.options.uploadInterval * 1000);
