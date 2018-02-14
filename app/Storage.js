@@ -4,16 +4,12 @@ const StorageClickHouse = require('./storage/ClickHouse');
 
 class Storage {
 
-  constructor(options) {
+  constructor(options, services) {
 
     this.defaults = {};
     this.options = Object.assign({}, this.defaults, options);
 
-  }
-
-  async init() {
-
-    this.ch = new StorageClickHouse(this.options.clickhouse);
+    this.ch = new StorageClickHouse(this.options.clickhouse, services);
 
   }
 

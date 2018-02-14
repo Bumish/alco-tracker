@@ -9,6 +9,7 @@ const TrackerWebApi = require('./TrackerWebApi');
 const ServiceStat = require('./ServiceStat');
 const LocalConfig = require('./config/LocalConfig');
 const Storage = require('./Storage');
+const pino = require('pino');
 
 const localConfig = new LocalConfig({
   path: path.resolve(__dirname, '..', 'config')
@@ -19,23 +20,21 @@ const localConfig = new LocalConfig({
 
   try {
 
-    console.log('Starting Alcolytics tracker');
-
     const config = await localConfig.serviceConfig();
     config.isProduction = process.env.NODE_ENV === 'production';
 
-    console.log('config', config);
+    // Logger
+    const log = pino(config.pino);
+    const services = {log};
 
-    const services = {
-      stat: new ServiceStat(config),
-      storage: new Storage(config)
-    };
+    log.info('Starting Alcolytics tracker');
+    log.debug(config, 'Config');
 
+    // Services
+    services.stat = new ServiceStat(config, services);
+    services.storage = new Storage(config, services);
     services.trackerService = new TrackerService(config, services);
     services.trackerWebApi = new TrackerWebApi(config, services);
-
-    // Initializing storage
-    await services.storage.init();
 
     // Initializing main service
     await services.trackerService.init();
@@ -43,7 +42,7 @@ const localConfig = new LocalConfig({
     // Starting HTTP API
     await services.trackerWebApi.start();
 
-    console.log('Ready');
+    log.info('Ready');
 
 
   } catch (e) {

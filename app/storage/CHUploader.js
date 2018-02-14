@@ -9,10 +9,11 @@ const afs = Promise.promisifyAll(fs);
 
 class CHUploader {
 
-  constructor(options){
+  constructor(options, services){
 
     options = options || {};
 
+    this.log = services.log.child({module: 'CHUploader'});
     this.ch_url = `${options.protocol  }//${  options.hostname  }:${  options.port}`;
     this.db = options.db;
     this.httpOptions = {
@@ -30,16 +31,16 @@ class CHUploader {
     afs.createReadStream(fn)
       .pipe(got.stream.post(this.ch_url, Object.assign({}, this.httpOptions, {query}) ))
       .on('error', (err, body, res) => {
-        console.log('err', err);
+        this.log.error(err, 'Upload error');
       })
       .on('response', response => {
         if(response.statusCode === 200){
 
-          afs.unlinkAsync(fn)
-            .then(() => {});
+          afs.unlinkAsync(fn).then(() => {});
 
         } else {
-          console.log('response', response.body, response.statusCode, response.statusMessage);
+
+          this.log.warn({body: response.body, code: response.statusCode}, 'Wrong code');
         }
       });
   }

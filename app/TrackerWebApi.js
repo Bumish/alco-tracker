@@ -18,6 +18,11 @@ const afs = Promise.promisifyAll(fs);
 const {timeMark, timeDuration} = require('./ServiceStat');
 const alcoRequestSchema = require('./schema/alcoRequest');
 
+const asyncUtil = fn =>
+  (req, res, next, ...args) =>
+    fn(req, res, next, ...args).catch(next);
+
+
 class TrackerHttpApi {
 
   constructor(options, services) {
@@ -27,15 +32,20 @@ class TrackerHttpApi {
       uidParam: 'uid'
     };
 
+    this.log = services.log;
     this.options = options;
     this.options.http = Object.assign({}, httpDefaults, options.http);
     this.cookieMaxAge = this.options.http.cookieMaxAge;
 
-    const {cookieMaxAge, trustProxy, uidParam} = this.options.http;
+    const {isProduction, http} = options;
+    const {cookieMaxAge, trustProxy, uidParam} = http;
 
-    console.log('Starting HTTP api. Environment:', this.options.isProduction ? 'production' : 'development');
-    console.log(`Configured statsd at host ${options.statsd.host}`);
-    console.log(`HTTP options: cookieMaxAge: ${cookieMaxAge}`);
+
+    this.log.info({
+      isProduction,
+      cookieMaxAge,
+      trustProxy
+    }, 'Starting HTTP api');
 
     const {trackerService, stat} = services;
 
@@ -51,7 +61,6 @@ class TrackerHttpApi {
     this.lib = null;
 
     this.clientOptions = client && client.common || {};
-
     this.app = express();
     this.app.set('x-powered-by', false);
     this.app.set('trust proxy', trustProxy);
@@ -70,8 +79,6 @@ class TrackerHttpApi {
       origin: true,
       credentials: true
     }));
-
-    console.log('Trust proxy:', trustProxy && trustProxy.join(','));
 
     this.app.use((req, res, next) => {
 
@@ -99,9 +106,13 @@ class TrackerHttpApi {
 
     });
 
-    this.app.post('/track', (req, res) => {
+    this.app.post('/track', asyncUtil(async (req, res) => {
 
       this.stat.mark('trackPost');
+
+      if (Object.keys(req.body).length === 0) {
+
+      }
 
       const msg = Object.assign({}, req.body, {
         uid: req.uid,
@@ -109,22 +120,24 @@ class TrackerHttpApi {
         userAgent: req.headers['user-agent']
       });
 
-      alcoRequestSchema.validate(msg, (err, value) => {
-        if (err) {
-          console.log(err);
-          console.log('features:', msg.cf);
-        }
-      });
+      try {
 
-      this.trackerService.track(msg).then(() => {
-        this.stat.histPush('trackPostHandled', timeDuration(req.startAt));
-      });
+        res.json({result: 'queued'});
 
-      res.json({result: 'queued'});
+        await alcoRequestSchema.validate(msg);
+
+        this.trackerService.track(msg).then(() => {
+          this.stat.histPush('trackPostHandled', timeDuration(req.startAt));
+        });
+
+      } catch (err) {
+        this.log.error(msg, err.message);
+      }
+
 
       this.stat.histPush('trackPostResponse', timeDuration(req.startAt));
 
-    });
+    }));
 
     this.app.get('/lib.js', (req, res) => {
 

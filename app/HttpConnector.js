@@ -15,10 +15,11 @@ function createHash(data) {
 
 class HTTPConnector {
 
-  constructor(options) {
+  constructor(options, {log}) {
 
+    this.log = log;
     if (!options.url) {
-      console.warn('HTTPConnector: You should provide api url');
+      this.log.warn('HTTPConnector: You should provide api url');
     }
 
     this.options = options;
@@ -40,8 +41,10 @@ class HTTPConnector {
 
     const url = this.url(params);
     const requestKey = createHash(Object.values(params).join(''));
-
     const cached = this.cache.get(requestKey);
+
+    this.log.debug({url, cached:Boolean(cached)}, 'Querying api');
+
     if (cached) {
       return JSON.parse(cached);
     }
@@ -54,14 +57,14 @@ class HTTPConnector {
         if (body && body.success) {
           this.cache.set(requestKey, JSON.stringify(body));
         } else {
-          console.error('HTTPConnector: Wrong answer', body);
+          console.error({body}, 'Wrong answer');
         }
 
         return body;
 
       }).catch(err => {
 
-      console.error(`HTTPConnector| url:${url}; message:${err.message}; body:${err.response && err.response.body}`, );
+      console.error({url, msg: err.message, body: err.response && err.response.body}, 'Query error');
       return {
         success: false,
         error: err.message

@@ -6,8 +6,11 @@ const dsnParse = require('../functions/dsnParse');
 
 class CHReader {
 
-  constructor(dsn){
+  constructor(options, services) {
 
+    const {log} = services;
+    this.log = log.child({module: 'CHReader'});
+    const {dsn} = options;
     const connectionOptions = dsnParse(dsn);
 
     this.ch_db = connectionOptions.path || 'unknown';
@@ -20,43 +23,35 @@ class CHReader {
 
     this.ch_url = `${this.ch_host  }:${  this.ch_port}`;
 
-    console.log('construction CH reader', this.ch_host);
+    this.log.info({host: this.ch_host}, 'construction CH reader');
 
   }
 
 
-  query(q){
+  query(q) {
 
-    console.log('quering data from clickhouse', q);
-
-    const url_query = {
+    const queryParams = {
       database: this.ch_db,
       query: q
     };
 
-    return got(this.ch_url, {query: url_query})
-      .then(response =>
-        // console.log(response.body);
-         response.body
-      )
-      .catch(error => {
-        console.log(error.response.body);
-      });
+    this.log.debug(queryParams, 'Query');
+
+    return got(this.ch_url, {query: queryParams})
+      .then(response => response.body)
+      .catch(err => this.log.error(err, 'Error during querying data'));
   }
 
 
-  query_sream(q){
+  query_sream(q) {
 
-    console.log('quering data from clickhouse', q);
-
-    const url_query = {
+    const queryParams = {
       database: this.ch_db,
       query: q
     };
 
-    return got.stream(this.ch_url, {query: url_query})
-
-
+    this.log.debug(queryParams, 'Query stream');
+    return got.stream(this.ch_url, {query: queryParams});
   }
 }
 

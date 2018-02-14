@@ -10,15 +10,25 @@ const boolToInt = (k, v) => (typeof v === 'boolean' ? Number(v) : v);
 
 class CHBufferWriter {
 
-  constructor(table) {
+  /**
+   *
+   * @param options
+   * @param services
+   */
+  constructor(options, services) {
+
+    const {table} = options;
+
+    this.startDate = new Date();
+    this.folder = 'upload_ch';
+    this.fileName = `${this.startDate.toISOString()}.log`;
+
+    this.log = services.log.child({group: 'CHBufferWriter', obj:this.fileName});
 
     this.buffers = [];
     this.fileReady = false;
     this.writing = false;
-
-    this.folder = 'upload_ch';
-    this.startDate = new Date();
-    this.objectName = `${this.folder}/${table}-${this.startDate.toISOString()}.log`;
+    this.objectName = `${this.folder}/${table}-${this.fileName}`;
 
     fsa.openAsync(this.objectName, 'w').then(fd => {
 
@@ -26,9 +36,9 @@ class CHBufferWriter {
       this.fileReady = true;
       this.flushBuffer();
 
-    }).catch(error => {
+    }).catch(err => {
 
-      console.error(error);
+      this.log.error(err, 'Error writing to temp file');
 
     });
   }
@@ -36,7 +46,7 @@ class CHBufferWriter {
   flushBuffer() {
 
     if (!this.fileReady) {
-      return console.error('file not ready');
+      return this.log.error('file not ready');
     }
 
     const buffer = Buffer.concat(this.buffers);
@@ -48,7 +58,7 @@ class CHBufferWriter {
   writeToFile(data) {
 
     if (!this.fileReady) {
-      return console.error('file not ready');
+      return this.log.error('file not ready');
     }
 
     this.writing = true;
@@ -59,7 +69,7 @@ class CHBufferWriter {
 
     }).catch(error => {
 
-      console.error('write error', error);
+      this.log.error('write error', error);
 
     });
   }
@@ -80,21 +90,20 @@ class CHBufferWriter {
     try {
 
       if (this.buffers.length) {
-        console.log('CHBufferWriter: buffer not empty, waiting');
+        this.log.warn('buffer not empty, waiting');
         await wait(() => !this.buffers.length, 10, 10);
       }
 
       if (this.writing) {
-        console.log('CHBufferWriter: file writing in process. waiting');
+        this.log.warn('file writing in process. waiting');
         await wait(() => !this.writing, 10, 10);
       }
 
       await fsa.closeAsync(this.fd);
-
       return this.objectName;
 
     } catch (e) {
-      console.error(`CHBufferWriter: can't save ${this.objectName}. buf.len: ${this.buffers.length}; writing: ${this.writing}`);
+      this.log.error({bufferLength: this.buffers.length, writing: this.writing}, 'Error while closing temp file.');
       throw e;
     }
   }

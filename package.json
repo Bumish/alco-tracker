@@ -4,7 +4,7 @@
   "description": "Alcolytics tracking service",
   "main": "app/tracker.js",
   "scripts": {
-    "start": "nodemon app/tracker"
+    "start": "nodemon app/tracker | pino -c"
   },
   "repository": {
     "type": "git",
@@ -34,6 +34,7 @@
     "measured": "^1.1.0",
     "mixpanel": "^0.8.0",
     "node-cache": "^4.1.1",
+    "pino": "^4.10.4",
     "simpleflake": "^1.0.1",
     "statsd-client": "^0.4.0",
     "string-template": "^1.0.0",

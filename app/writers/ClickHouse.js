@@ -15,24 +15,32 @@ const WEBHOOKS_TABLE = 'webhooks';
 
 class ClickHouse {
 
-  constructor(options) {
+  constructor(options, services) {
 
     this.defaults = {
       uploadInterval: 5,
       enabled: false
     };
 
+    const {log} = services;
+
+    this.log = services.log.child({module: 'CHDataWriter'});
     this.options = Object.assign({}, this.defaults, options);
     this.configured = this.options.enabled && this.options.dsn && true;
 
     this.writers = new Map();
+    this.getWriter = (table) => {
+      if (!this.writers.has(table)) {
+        this.writers.set(table, new CHBufferWriter({table}, {log}));
+      }
+      return this.writers.get(table);
+    };
 
     if (this.configured) {
       const connOptions = dsnParse(this.options.dsn);
 
-      this.uploader = new CHUploader(connOptions);
-
-      console.log('ClickHouse writer activated');
+      this.uploader = new CHUploader(connOptions, services);
+      this.log.info('ClickHouse writer activated');
     }
 
     setInterval(() => this.upload(), this.options.uploadInterval * 1000);
@@ -40,13 +48,6 @@ class ClickHouse {
 
   isConfigured() {
     return this.configured;
-  }
-
-  getWriter(table) {
-    if (!this.writers.has(table)) {
-      this.writers.set(table, new CHBufferWriter(table));
-    }
-    return this.writers.get(table);
   }
 
   upload() {
@@ -133,7 +134,7 @@ class ClickHouse {
 
     }).catch(err => {
 
-      console.error(err);
+      this.log.error(err);
 
     });
 

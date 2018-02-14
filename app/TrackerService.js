@@ -9,19 +9,17 @@ const HttpConnector = require('./HttpConnector');
 
 class TrackerService {
 
-  constructor(config, services) {
-
-    const {storage} = services;
+  constructor(config, {storage, log}) {
 
     this.config = config;
     this.storage = storage;
 
-    this.sypexgeoService = new HttpConnector(config.services.sypexgeo);
-    this.devicedService = new HttpConnector(config.services.deviced);
+    this.sypexgeoService = new HttpConnector(config.services.sypexgeo, {log});
+    this.devicedService = new HttpConnector(config.services.deviced, {log});
 
     const availableWriters = [
-      new CHWriter(config.clickhouse),
-      new MPWriter(config.mixpanel)
+      new CHWriter(config.clickhouse, {log}),
+      new MPWriter(config.mixpanel, {log})
     ];
 
     this.writers = availableWriters.filter(e => e.isConfigured());
@@ -84,7 +82,7 @@ class TrackerService {
 
   async track(msg) {
 
-    msg.id = this.generateEventId();
+    msg.id = msg.id || this.generateEventId();
     msg.time = new Date();
 
     await this.enrich(msg).then(msg => {

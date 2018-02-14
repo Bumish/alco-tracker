@@ -3,6 +3,11 @@
 const Joi = require('joi');
 
 module.exports = Joi.object().keys({
+  time: Joi.any().forbidden(),
+  id: Joi.any().forbidden(),
+  name: Joi.string().required(),
+  projectId: Joi.number().integer().required(),
+  uid: Joi.string().regex(/^[0-9]+$/),
   userAgent: Joi.string().required(),
   ip: Joi.string().required(),
   browser: Joi.object().keys({
@@ -45,7 +50,6 @@ module.exports = Joi.object().keys({
     name: Joi.string().required(),
     snippet: Joi.number().integer().required()
   }).required(),
-  name: Joi.string().required(),
   page: Joi.object().keys({
     hash: Joi.string().allow('').required(),
     hostname: Joi.string().allow('').required(),
@@ -74,8 +78,6 @@ module.exports = Joi.object().keys({
     rss: Joi.number().integer().required(),
     scs: Joi.number().integer().required(),
   }).optional(),
-  projectId: Joi.number().integer().required(),
-  uid: Joi.string().regex(/^[0-9]+$/),
   session: Joi.object().keys({
     eventNum: Joi.number().integer(),
     pageNum: Joi.number().integer(),
