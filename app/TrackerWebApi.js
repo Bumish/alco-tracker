@@ -102,6 +102,8 @@ class TrackerHttpApi {
 
       this.stat.mark('trackGif');
 
+      this.log.debug({event: 'unknown'}, 'Tracking via gif');
+
       res.type('gif').send(emptyGif);
 
     });
@@ -120,13 +122,15 @@ class TrackerHttpApi {
         userAgent: req.headers['user-agent']
       });
 
+      res.json({result: 'queued'});
+
       try {
 
-        res.json({result: 'queued'});
+        const validated = await alcoRequestSchema.validate(msg);
 
-        await alcoRequestSchema.validate(msg);
+        this.log.debug({event: {name: validated.name}}, 'Tracking');
 
-        this.trackerService.track(msg).then(() => {
+        this.trackerService.track(validated).then(() => {
           this.stat.histPush('trackPostHandled', timeDuration(req.startAt));
         });
 
