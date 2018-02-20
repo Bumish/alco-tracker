@@ -66,6 +66,7 @@ module.exports = Joi.object().keys({
     topOffset: Joi.number().integer().required(),
     scroll: Joi.number().integer().required(),
     maxScroll: Joi.number().integer().required(),
+    src: Joi.any().optional().strip()
   }).optional(),
   perf: Joi.object().keys({
     ce: Joi.number().integer().required(),
