@@ -91,14 +91,18 @@ class CHBufferWriter {
 
       if (this.buffers.length) {
         this.log.warn('buffer not empty, waiting');
-        await wait(() => !this.buffers.length, 10, 10);
+        await wait(() => !this.buffers.length, 10, 50);
+
+        if (this.buffers.length) {
+          this.log.warn('buffer still not empty, waiting more');
+        }
       }
 
       if (this.writing) {
-        this.log.warn('file writing in process. waiting');
-        await wait(() => !this.writing, 10, 10);
+        this.log.debug('file writing in process. waiting');
+        await wait(() => !this.writing, 10, 50);
       }
-
+      
       await fsa.closeAsync(this.fd);
       return this.objectName;
 

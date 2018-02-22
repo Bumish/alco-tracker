@@ -130,6 +130,8 @@ class ClickHouse {
 
     Joi.validate(record, eventSchema).then(values => {
 
+      this.log.debug(record, 'Validated CH record');
+
       this.getWriter(EVENTS_TABLE).push(values);
 
     }).catch(err => {

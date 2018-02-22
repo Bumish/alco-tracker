@@ -112,21 +112,25 @@ class TrackerHttpApi {
 
       this.stat.mark('trackPost');
 
-      if (Object.keys(req.body).length === 0) {
-
-      }
-
-      const msg = Object.assign({}, req.body, {
+      const transportData = {
         uid: req.uid,
         ip: req.ip,
         userAgent: req.headers['user-agent']
-      });
+      };
+
+      if (Object.keys(req.body).length === 0) {
+        return this.log.info(transportData, 'Empty PostData')
+      }
+
+      const msg = Object.assign({}, req.body, transportData);
 
       res.json({result: 'queued'});
 
       try {
 
         const validated = await alcoRequestSchema.validate(msg);
+
+        this.log.debug(validated, 'Validated request');
 
         this.log.debug({event: {name: validated.name}}, 'Tracking');
 
