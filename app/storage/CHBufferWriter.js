@@ -102,7 +102,7 @@ class CHBufferWriter {
         this.log.debug('file writing in process. waiting');
         await wait(() => !this.writing, 10, 50);
       }
-      
+
       await fsa.closeAsync(this.fd);
       return this.objectName;
 
