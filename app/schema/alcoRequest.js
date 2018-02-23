@@ -91,5 +91,8 @@ module.exports = Joi.object().keys({
     refHash: Joi.any().optional().strip(),
     marks: Joi.object().options({allowUnknown: true}).optional()
   }).required(),
-  user: Joi.object().keys({}).options({allowUnknown: true}).required()
+  user: Joi.object().keys({
+    gaId: Joi.string().optional(),
+    ymId: Joi.string().optional()
+  }).options({allowUnknown: true}).required()
 });
