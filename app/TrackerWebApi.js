@@ -142,7 +142,6 @@ class TrackerHttpApi {
         this.log.error(msg, err.message);
       }
 
-
       this.stat.histPush('trackPostResponse', timeDuration(req.startAt));
 
     }));

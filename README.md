@@ -1,14 +1,22 @@
-# Alcolytics
+# About Alcolytics
 
-Is an open source platform for a web and product analytics. It consists of a set of components: JavaScript tracking client for web applications; server-side data collector; services for geo-coding and detecting client device type; a new server deployment system.
+Is an open source platform for a web and product analytics. 
+It consists of a set of components: JavaScript tracking client for web applications; 
+server-side data collector; services for geo-coding and detecting client device type; 
+a new server deployment system.
+[Read more](https://alco.readme.io/docs)
 
-Платформа для web и продуктовой аналитики с открытым исходным кодом. Включает в себя JavaScript трекер для сайта; сервис получения, обогащения, сохранения и стриминга данных; сервисы гео-кодинга и определения типа клиентского устройства; систему развертывания нового сервера. 
+Платформа для web и продуктовой аналитики с открытым исходным кодом.
+Включает в себя JavaScript трекер для сайта; сервис получения, обогащения,
+сохранения и стриминга данных; сервисы гео-кодинга и определения типа клиентского устройства;
+систему развертывания нового сервера.
+[Подробнее](https://alco.readme.io/docs) 
 
 ![Alcolytics sheme](https://raw.githubusercontent.com/alcolytics/alco-tracker/master/docs/alco-scheme.png)
 
-## AlcoTracker
+## About AlcoTracker
 
-This service which collects data via HTTP (AlcoJS, 3rd-party tool) and stores in ClickHouse dbms. On the fly enriches data using geo-coding and device detection services. Results are stored and optionally can be sent to the third-party services via API. Comes as a part of Alcolytics platform.
+This service which collects data by HTTP from AlcoJS and 3rd-party tool then stores in ClickHouse dbms. On the fly enriches data using geo-coding and device detection services. Results are stored and optionally can be sent to the third-party services via API. Comes as a part of Alcolytics platform.
 
 Сервис принимает данные от AlcoJS и сторонних сервисов, обогащает данными сервисов гео-кодинга и определения типа клиентского устройства. Результат  сохраняется в колоночную СУБД ClickHouse. Опционально передает во внешние сервисы по api. 
 
@@ -64,6 +72,7 @@ This service which collects data via HTTP (AlcoJS, 3rd-party tool) and stores in
     MIXPANEL_TOKEN=mixpanel_project_token
     CH_DSN=http://host:8123/db_name
     PORT=8080
+
 
 ## License
 

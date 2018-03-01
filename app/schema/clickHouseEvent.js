@@ -72,3 +72,6 @@ module.exports = Joi.object().keys({
   user_gaId: Joi.string().allow(''),
   user_ymId: Joi.string().allow(''),
 });
+
+
+// page_number утсревшее поле, испольузется как дефолт к session_pageNum

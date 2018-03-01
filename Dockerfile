@@ -11,7 +11,8 @@ RUN yarn install --production
 COPY . /usr/src/app
 
 # Downloading latest alcojs lib
-ENV ALCOJS_URL https://raw.githubusercontent.com/alcolytics/alcojs/master/dist/lib.js
+ARG ALCOJS_VERSION=master
+ENV ALCOJS_URL https://raw.githubusercontent.com/alcolytics/alcojs/$ALCOJS_VERSION/dist/lib.js
 RUN curl $ALCOJS_URL > alcojs/lib.js
 
 # Env vars

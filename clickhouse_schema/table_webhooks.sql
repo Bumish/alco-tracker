@@ -17,6 +17,3 @@ CREATE TABLE IF NOT EXISTS webhooks
 
 ) ENGINE = MergeTree(date, (date, projectId, id), 8192);
 
-
-
-

@@ -3,96 +3,106 @@
 const Joi = require('joi');
 
 module.exports = Joi.object().keys({
-  time: Joi.any().forbidden(),
-  id: Joi.any().forbidden(),
-  name: Joi.string().required(),
-  projectId: Joi.number().integer().required(),
-  uid: Joi.string().regex(/^[0-9]+$/),
-  userAgent: Joi.string().required(),
-  ip: Joi.string().required(),
-  browser: Joi.object().keys({
-    if: Joi.array(),
-    sr: Joi.object().keys({
-      asp: Joi.number().integer(),
-      avail: Joi.object().keys({
-        w: Joi.number().integer().required(),
-        h: Joi.number().integer().required()
-      }).required(),
-      tot: Joi.object().keys({
-        w: Joi.number().integer().required(),
-        h: Joi.number().integer().required()
-      }).required(),
-      oAngle: Joi.number().integer(),
-      oType: Joi.string()
-    }),
-    wh: Joi.object().keys({
-      w: Joi.number().integer().required(),
-      h: Joi.number().integer().required()
-    }).required(),
-  }).required(),
-  client: Joi.object().keys({
-    platform: Joi.string().required(),
-    product: Joi.string().required(),
-    tz: Joi.string().allow('').required(),
-    tzOffset: Joi.number().integer().required(),
-    ts: Joi.number().integer().required()
-  }).required(),
-  cf: Joi.object().keys({
-    locstor: Joi.boolean().required(),
-    addel: Joi.boolean().required(),
-    promise: Joi.boolean().required(),
-    sbeacon: Joi.boolean().required(),
-    atob: Joi.boolean().required(),
-  }).optional(),
-  data: Joi.object().keys({}).options({allowUnknown: true}).required(),
-  library: Joi.object().keys({
-    libver: Joi.number().integer().required(),
-    name: Joi.string().required(),
-    snippet: Joi.number().integer().required()
-  }).required(),
-  page: Joi.object().keys({
-    hash: Joi.string().allow('').required(),
-    hostname: Joi.string().allow('').required(),
-    path: Joi.string().allow('').required(),
-    proto: Joi.string().allow('').required(),
-    query: Joi.string().allow('').required(),
-    referrer: Joi.string().allow('').required(),
-    url: Joi.string().allow('').required(),
-    title: Joi.string().allow('').required(),
-  }).required(),
-  scroll: Joi.object().keys({
-    docHeight: Joi.number().integer().required(),
-    clientHeight: Joi.number().integer().required(),
-    topOffset: Joi.number().integer().required(),
-    scroll: Joi.number().integer().required(),
-    maxScroll: Joi.number().integer().required(),
-    src: Joi.any().optional().strip()
-  }).optional(),
-  perf: Joi.object().keys({
-    ce: Joi.number().integer().required(),
-    cs: Joi.number().integer().required(),
-    dc: Joi.number().integer().required(),
-    di: Joi.number().integer().required(),
-    dl: Joi.number().integer().required(),
-    rqs: Joi.number().integer().required(),
-    rse: Joi.number().integer().required(),
-    rss: Joi.number().integer().required(),
-    scs: Joi.number().integer().required(),
-  }).optional(),
-  session: Joi.object().keys({
-    eventNum: Joi.number().integer(),
-    pageNum: Joi.number().integer(),
-    refHost: Joi.string().optional(),
-    start: Joi.number().integer().optional(),
-    num: Joi.number().integer().optional(),
-    hasMarks: Joi.boolean().optional(),
-    type: Joi.string().optional(),
-    engine: Joi.string().optional(),
-    refHash: Joi.any().optional().strip(),
-    marks: Joi.object().options({allowUnknown: true}).optional()
-  }).required(),
-  user: Joi.object().keys({
-    gaId: Joi.string().optional(),
-    ymId: Joi.string().optional()
-  }).options({allowUnknown: true}).required()
+  name: Joi.string().required(),              // ch+
+  projectId: Joi.number().integer().required(),// ch+
+  uid: Joi.string().regex(/^[0-9]+$/),        // ch+
+  userAgent: Joi.string().required(),         // ch+
+  ip: Joi.string().required(),                // ch+
+  browser: Joi.object().keys({                // O
+    if: Joi.array(),                          // ch+
+    sr: Joi.object().keys({                   // O
+      asp: Joi.number().integer(),            // ch+
+      avail: Joi.object().keys({              // O
+        w: Joi.number().integer().required(), // ch+
+        h: Joi.number().integer().required()  // ch+
+      }).required(),                          // O
+      tot: Joi.object().keys({                // O
+        w: Joi.number().integer().required(), // ch+
+        h: Joi.number().integer().required()  // ch+
+      }).required(),                          // O
+      oAngle: Joi.number().integer(),         // ch+
+      oType: Joi.string()                     // ch+
+    }),                                       // ch+
+    wh: Joi.object().keys({                   // O
+      w: Joi.number().integer().required(),   // ch+
+      h: Joi.number().integer().required()    // ch+
+    }).required(),                            // O
+  }).required(),                              // O
+  client: Joi.object().keys({                 // O
+    platform: Joi.string().required(),        // ch+
+    product: Joi.string().required(),         // ch+
+    tz: Joi.string().allow('').required(),    // ch+
+    tzOffset: Joi.number().integer().required(),// ch+
+    ts: Joi.number().integer().required()     // ch+
+  }).required(),                              // O
+  cf: Joi.object().keys({                     // Och+ (client features)
+    locstor: Joi.boolean().required(),        // ch+sub
+    addel: Joi.boolean().required(),          // ch+sub
+    promise: Joi.boolean().required(),        // ch+sub
+    sbeacon: Joi.boolean().required(),        // ch+sub
+    atob: Joi.boolean().required(),           // ch+sub
+  }).optional(),                              // O
+  data: Joi.object().keys({}).unknown(true).required(),// Och+
+  library: Joi.object().keys({                // O
+    libver: Joi.number().integer().required(),// ch+
+    name: Joi.string().required(),            // ch+
+    snippet: Joi.number().integer().required()// ch+
+  }).required(),                              // O
+  page: Joi.object().keys({                   // O
+    hash: Joi.string().allow('').required(),  // +
+    hostname: Joi.string().allow('').required(),// +
+    path: Joi.string().allow('').required(),  // skip (can be used from url)
+    proto: Joi.string().allow('').required(), // +
+    query: Joi.string().allow('').required(), // skip (can be used from url)
+    referrer: Joi.string().allow('').required(),// ch+
+    url: Joi.string().allow('').required(),   // ch+
+    title: Joi.string().allow('').required(), // ch+
+  }).required(),                              // O
+  scroll: Joi.object().keys({                 // O
+    docHeight: Joi.number().integer().required(),// ch+
+    clientHeight: Joi.number().integer().required(),// ch+
+    topOffset: Joi.number().integer().required(),// ch+
+    scroll: Joi.number().integer().required(),// ch+
+    maxScroll: Joi.number().integer().required(),// ch+
+    src: Joi.any().optional().strip()         // temp
+  }).optional(),                              // O
+  perf: Joi.object().keys({                   // Och+
+    ce: Joi.number().integer().required(),    // ch+sub
+    cs: Joi.number().integer().required(),    // ch+sub
+    dc: Joi.number().integer().required(),    // ch+sub
+    di: Joi.number().integer().required(),    // ch+sub
+    dl: Joi.number().integer().required(),    // ch+sub
+    rqs: Joi.number().integer().required(),   // ch+sub
+    rse: Joi.number().integer().required(),   // ch+sub
+    rss: Joi.number().integer().required(),   // ch+sub
+    scs: Joi.number().integer().required(),   // ch+sub
+  }).optional(),                              // O
+  session: Joi.object().keys({                // O
+    eventNum: Joi.number().integer(),         // ch+
+    pageNum: Joi.number().integer(),          // ch+
+    refHost: Joi.string().optional(),         // ch+
+    start: Joi.number().integer().optional(), // ch+
+    num: Joi.number().integer().optional(),   // ch+
+    hasMarks: Joi.boolean().optional(),       // ch+
+    type: Joi.string().optional(),            // ch+
+    engine: Joi.string().optional(),          // ch+
+    refHash: Joi.any().optional().strip(),    // ch+
+    marks: Joi.object().unknown(true).optional()// ch+
+  }).required(),                              // O
+  user: Joi.object().keys({                   // O
+    gaId: Joi.string().optional(),            // ch+
+    ymId: Joi.string().optional()             // ch+
+  }).unknown(true).required()                 // ch+ (optional user traits)
 });
+
+// === to rename (nested):
+// session_marks
+// user_traits
+// data
+
+// === Приведение типаов и чистка ключей и значений (в строку)
+// user_traits
+// session_marks
+//
+
+// .options({allowUnknown: true})
