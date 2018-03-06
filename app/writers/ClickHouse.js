@@ -6,7 +6,8 @@ const CHSync = require('../storage/CHSync');
 const dsnParse = require('../functions/dsnParse');
 const unzip = require('../functions/unzip');
 
-const isObject = value => typeof value === 'object' && !Array.isArray(value);
+//  && !Array.isArray(value)
+const isObject = value => (!!value && typeof value === 'object' && value.constructor === Object);
 const emptySet = new Set();
 
 /**
