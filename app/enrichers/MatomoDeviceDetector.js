@@ -25,7 +25,7 @@ const Schema = Joi.object().keys({
 });
 
 
-const handle = (data) => {
+const handle = data => {
 
   const result = pick(data, 'success');
 
@@ -78,7 +78,7 @@ class MatomoDeviceDetectorConnector {
       );
 
     } catch (error) {
-      this.log.error(error);
+      this.log.error({query}, error);
     }
 
     return response;

@@ -58,6 +58,8 @@ writers:
         page_query_utm_medium: String
         page_query_utm_content: String
         page_query_utm_term: String
+        page_query_gclid: String
+        page_query_yclid: String
         page_query.key: Array(String)
         page_query.value: Array(String)
         session_type: String
@@ -71,6 +73,8 @@ writers:
         session_marks_utm_medium: String
         session_marks_utm_content: String
         session_marks_utm_term: String
+        session_marks_has_gclid: Int8 DEFAULT -1
+        session_marks_has_yclid: Int8 DEFAULT -1
         session_marks.key: Array(String)
         session_marks.value: Array(String)
         session_start: UInt64
