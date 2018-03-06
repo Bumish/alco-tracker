@@ -49,12 +49,12 @@ module.exports = Joi.object().keys({
     libver: Joi.number().integer().required(),// ch+
     name: Joi.string().required(),            // ch+
     snippet: Joi.number().integer().required()// ch+
-  }).options({stripUnknown: true}).required(),                              // O
+  }).required(),                              // O
   page: Joi.object().keys({                   // O
     url: Joi.string().uri().required(),   // ch+
     referrer: Joi.string().uri().allow('').required(),// ch+
     title: Joi.string().allow('').required() // ch+
-  }).required(),                              // O
+  }).options({stripUnknown: true}).required(),                              // O
   scroll: Joi.object().keys({                 // O
     docHeight: Joi.number().integer().required(),// ch+
     clientHeight: Joi.number().integer().required(),// ch+
