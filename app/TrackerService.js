@@ -17,9 +17,10 @@ class TrackerService {
       return new enrichers[k](config.services[k], {log});
     });
 
-    this.writers = Object.keys(writers).map(k => {
-      return new writers[k](config.writers[k], {log});
-    });
+    this.writers = Object.keys(writers).reduce((acc, k) => {
+      const w = new writers[k](config.writers[k], {log});
+      return acc.concat(w.configured ? [w] : []);
+    },[]);
   }
 
   async init() {

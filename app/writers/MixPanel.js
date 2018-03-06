@@ -16,9 +16,20 @@ class MixPanel {
 
     this.log = log.child({name: this.constructor.name});
     this.options = Object.assign({}, this.defaults, options);
-    this.configured_flag = this.options.enabled && this.options.token && true;
 
     this.queue = [];
+
+  }
+
+  get configured() {
+    return this.options.enabled && this.options.token && true;
+  }
+
+  /**
+   * Initialize stub
+   * @return {Promise<boolean>}
+   */
+  async init() {
 
     this.mp = Mixpanel.init(this.options.token, {
       protocol: 'https'
@@ -27,14 +38,6 @@ class MixPanel {
     setInterval(() => this.upload(), this.options.uploadInterval * 1000);
 
     this.log.info('Mixpanel writer activated');
-  }
-
-  /**
-   * Initialize stub
-   * @return {Promise<boolean>}
-   */
-  async init() {
-    return true;
   }
 
   upload() {

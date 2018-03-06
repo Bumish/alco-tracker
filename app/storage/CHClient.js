@@ -37,9 +37,16 @@ class CHClient {
 
     this.writers = new Map();
 
+  }
+
+  init() {
+
     setInterval(
       () => this.flushWriters(),
       this.options.uploadInterval * 1000);
+
+    this.log.info('Started');
+
   }
 
   /**

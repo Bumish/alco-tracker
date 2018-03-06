@@ -79,12 +79,14 @@ class CHSync {
     await this.discover();
 
     for (const [table, conf] of Object.entries(tables)) {
+
+      const exists = this.tablesCols.has(table);
       const currTable = this.tablesCols.get(table);
 
       const {_options, ...customCols} = conf;
       const schemaCols = Object.assign({}, base, customCols);
 
-      if (!currTable) {
+      if (!exists) {
 
         this.log.info(`Creating table ${table}`);
         const query = showCreateTable(table, schemaCols, _options);

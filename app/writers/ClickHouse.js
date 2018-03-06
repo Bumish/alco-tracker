@@ -49,12 +49,14 @@ class ClickHouse {
 
     this.log = log.child({name: this.constructor.name});
 
-    this.options = Object.assign({}, options);
+    this.options = Object.assign({
+      enabled: false
+    }, options);
     this.inited = false;
 
     const connOptions = dsnParse(this.options.dsn);
-    const client = this.client = new CHClient(connOptions, {log});
 
+    const client = this.client = new CHClient(connOptions, {log});
     this.sync = new CHSync(options, {
       log,
       client
@@ -70,6 +72,11 @@ class ClickHouse {
 
       return flatObject(record, nested, cols);
     };
+  }
+
+  get configured() {
+
+    return this.options.enabled && this.options.dsn && true;
 
   }
 
@@ -78,6 +85,9 @@ class ClickHouse {
     this.casInit();
 
     await this.sync.sync();
+
+
+    await this.client.init();
 
     this.log.info('Ready');
   }
