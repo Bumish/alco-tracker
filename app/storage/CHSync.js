@@ -1,6 +1,6 @@
 'use strict';
 
-const DefaultDict = require('../functions/DefaultDict');
+const DefaultDict = require('../functions/defaultDict');
 const Lazy = require('lazy.js');
 
 const showCreateTable = (name, cols, table_options) => {
