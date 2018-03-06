@@ -162,7 +162,7 @@ statsd:
 pino:
   name: alco
   safe: true
-  level: <%= env.LOG_LEVEL || 'warn' %>
+  level: <%= env.LOG_LEVEL || 'info' %>
   prettyPrint: false
 
 client: {}
