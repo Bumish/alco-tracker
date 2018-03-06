@@ -6,8 +6,7 @@ const CHSync = require('../storage/CHSync');
 const dsnParse = require('../functions/dsnParse');
 const unzip = require('../functions/unzip');
 
-//  && !Array.isArray(value)
-const isObject = value => (!!value && typeof value === 'object' && value.constructor === Object);
+const isObject = o => (!!o && typeof o === 'object' && Object.prototype.toString.call(o) === '[object Object]');
 const emptySet = new Set();
 
 /**
@@ -36,7 +35,7 @@ const flatObject = (child, nested, cols, path = [], separator = '_') => {
         } else if (kv) {
           kv[key] = child[key];
         } else {
-          console.warn(`!! not found ${item_path}`);
+          console.warn(`!! not found path:${path}, key:${child[key]},val:`);
         }
       }
     });
@@ -66,8 +65,11 @@ class ClickHouse {
     this.formatter = (table, record) => {
       const {cols, nested} = this.sync.tableConfig(table);
 
-      if(!cols || !nested){
-        this.log.error({cols, nested});
+      if (!cols || !nested) {
+        this.log.error({
+          cols,
+          nested
+        });
         throw new Error('Wrong table config');
       }
 

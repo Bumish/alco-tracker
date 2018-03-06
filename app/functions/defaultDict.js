@@ -16,7 +16,7 @@ function defaultDict(type) {
     },
     has: key => dict.hasOwnProperty(key),
     keys: () => Object.keys(dict),
-    dict
+    dict: dict
   };
 }
 

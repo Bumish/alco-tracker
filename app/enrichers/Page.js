@@ -13,7 +13,7 @@ const Schema = Joi.object().keys({
     utm_medium: Joi.string().optional(),
     utm_content: Joi.string().optional(),
     utm_term: Joi.string().optional(),
-  }).unknown(true).pattern(/.*/, Joi.string()).default({}),
+  }).unknown(true).pattern(/.*/, Joi.string()).default({}).required(),
   proto: Joi.string().allow(['http', 'https', 'other']).required()
 
 });
