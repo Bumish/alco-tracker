@@ -8,7 +8,6 @@ const TrackerService = require('./TrackerService');
 const TrackerWebApi = require('./TrackerWebApi');
 const ServiceStat = require('./ServiceStat');
 const LocalConfig = require('./config/LocalConfig');
-const Storage = require('./Storage');
 const pino = require('pino');
 
 const localConfig = new LocalConfig({
@@ -32,9 +31,10 @@ const localConfig = new LocalConfig({
 
     // Services
     services.stat = new ServiceStat(config, services);
-    services.storage = new Storage(config, services);
     services.trackerService = new TrackerService(config, services);
     services.trackerWebApi = new TrackerWebApi(config, services);
+
+    // Async storage init
 
     // Initializing main service
     await services.trackerService.init();

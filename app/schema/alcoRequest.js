@@ -3,11 +3,13 @@
 const Joi = require('joi');
 
 module.exports = Joi.object().keys({
-  name: Joi.string().required(),              // ch+
-  projectId: Joi.number().integer().required(),// ch+
-  uid: Joi.string().regex(/^[0-9]+$/),        // ch+
+  type: Joi.string().allow('event'),
+  id: Joi.string().regex(/^[0-9]+$/),
   userAgent: Joi.string().required(),         // ch+
   ip: Joi.string().required(),                // ch+
+  projectId: Joi.number().integer().required(),// ch+
+  name: Joi.string().required(),              // ch+
+  uid: Joi.string().regex(/^[0-9]+$/),        // ch+
   browser: Joi.object().keys({                // O
     if: Joi.array(),                          // ch+
     sr: Joi.object().keys({                   // O
@@ -26,7 +28,7 @@ module.exports = Joi.object().keys({
     wh: Joi.object().keys({                   // O
       w: Joi.number().integer().required(),   // ch+
       h: Joi.number().integer().required()    // ch+
-    }).required(),                            // O
+    }).required()                            // O
   }).required(),                              // O
   client: Joi.object().keys({                 // O
     platform: Joi.string().required(),        // ch+
@@ -40,23 +42,18 @@ module.exports = Joi.object().keys({
     addel: Joi.boolean().required(),          // ch+sub
     promise: Joi.boolean().required(),        // ch+sub
     sbeacon: Joi.boolean().required(),        // ch+sub
-    atob: Joi.boolean().required(),           // ch+sub
+    atob: Joi.boolean().required()           // ch+sub
   }).optional(),                              // O
   data: Joi.object().keys({}).unknown(true).required(),// Och+
-  library: Joi.object().keys({                // O
+  lib: Joi.object().keys({                // O
     libver: Joi.number().integer().required(),// ch+
     name: Joi.string().required(),            // ch+
     snippet: Joi.number().integer().required()// ch+
   }).required(),                              // O
   page: Joi.object().keys({                   // O
-    hash: Joi.string().allow('').required(),  // +
-    hostname: Joi.string().allow('').required(),// +
-    path: Joi.string().allow('').required(),  // skip (can be used from url)
-    proto: Joi.string().allow('').required(), // +
-    query: Joi.string().allow('').required(), // skip (can be used from url)
-    referrer: Joi.string().allow('').required(),// ch+
-    url: Joi.string().allow('').required(),   // ch+
-    title: Joi.string().allow('').required(), // ch+
+    url: Joi.string().uri().required(),   // ch+
+    referrer: Joi.string().uri().allow('').required(),// ch+
+    title: Joi.string().allow('').required() // ch+
   }).required(),                              // O
   scroll: Joi.object().keys({                 // O
     docHeight: Joi.number().integer().required(),// ch+
@@ -65,7 +62,7 @@ module.exports = Joi.object().keys({
     scroll: Joi.number().integer().required(),// ch+
     maxScroll: Joi.number().integer().required(),// ch+
     src: Joi.any().optional().strip()         // temp
-  }).optional(),                              // O
+  }).default({}).optional(),                              // O
   perf: Joi.object().keys({                   // Och+
     ce: Joi.number().integer().required(),    // ch+sub
     cs: Joi.number().integer().required(),    // ch+sub
@@ -75,8 +72,8 @@ module.exports = Joi.object().keys({
     rqs: Joi.number().integer().required(),   // ch+sub
     rse: Joi.number().integer().required(),   // ch+sub
     rss: Joi.number().integer().required(),   // ch+sub
-    scs: Joi.number().integer().required(),   // ch+sub
-  }).optional(),                              // O
+    scs: Joi.number().integer().required()   // ch+sub
+  }).optional().default({}),                  // O
   session: Joi.object().keys({                // O
     eventNum: Joi.number().integer(),         // ch+
     pageNum: Joi.number().integer(),          // ch+
@@ -86,13 +83,15 @@ module.exports = Joi.object().keys({
     hasMarks: Joi.boolean().optional(),       // ch+
     type: Joi.string().optional(),            // ch+
     engine: Joi.string().optional(),          // ch+
-    refHash: Joi.any().optional().strip(),    // ch+
+    refHash: Joi.any().optional().strip(),    // ch- !сделать чтобы не приходило с фронта
     marks: Joi.object().unknown(true).optional()// ch+
   }).required(),                              // O
   user: Joi.object().keys({                   // O
+    id: Joi.string().allow('').default('').optional(),// ch+
     gaId: Joi.string().optional(),            // ch+
-    ymId: Joi.string().optional()             // ch+
-  }).unknown(true).required()                 // ch+ (optional user traits)
+    ymId: Joi.string().optional(),            // ch+
+    traits: Joi.object().unknown(true).default({}).optional()// ch+ (optional user traits)
+  }).unknown(true).required()                 // ch+
 });
 
 // === to rename (nested):

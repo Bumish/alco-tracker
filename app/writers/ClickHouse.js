@@ -1,34 +1,92 @@
 'use strict';
 
-const pick = require('es6-pick');
-const Joi = require('joi');
-
 const CHBufferWriter = require('../storage/CHBufferWriter');
-const CHUploader = require('../storage/CHUploader');
+const CHClient = require('../storage/CHClient');
 const dsnParse = require('../functions/dsnParse');
-const flatten = require('../functions/flatten');
 const unzip = require('../functions/unzip');
-const eventSchema = require('../schema/clickHouseEvent');
 
-const EVENTS_TABLE = 'events';
-const WEBHOOKS_TABLE = 'webhooks';
+
+const skipTables = new Set(['migrations']);
+
+const isObject = (value) => typeof value === 'object' && !Array.isArray(value);
+
+const flatRow = (child, nested, cols, path = [], separator = '_') => {
+
+  // console.log(nested)
+
+  const accum = {};
+  const root_path = path.join(separator);
+  const kv = root_path && Object.keys(nested).indexOf(root_path) >= 0 ? {} : null;
+
+
+  Object.keys(child).forEach(key => {
+    if (isObject(child[key])) {
+      Object.assign(accum, flatRow(child[key], nested, cols, path.concat([key]), separator));
+    } else {
+      const item_path = path.concat(key).join(separator);
+      if (cols[item_path]) {
+        accum[item_path] = child[key];
+      } else if (kv) {
+        kv[key] = child[key];
+      } else {
+        console.log(`!! not found ${item_path}`);
+      }
+    }
+  });
+  if (kv) {
+    Object.assign(accum, flatRow(unzip(kv, String, String), {}, cols, [root_path], '.'));
+  }
+  return accum;
+};
+
+const handleColumns = (rows) => rows.filter(col => !skipTables.has(col.table)).reduce((acc, col) =>
+  Object.assign(acc, {[col.table]: Object.assign({}, acc[col.table], {[col.name]: col.type})}), {});
+
+
+const handleNested = (cols) => Object.keys(cols).reduce((tables, table) =>
+  Object.assign(tables, {
+    [table]: Object.keys(cols[table]).reduce((acc, e) => {
+      if (e.indexOf('.') >= 0) {
+        const path = e.slice(0, e.indexOf('.'));
+        const key = e.slice(e.indexOf('.') + 1);
+        if (!acc[path] && (key === 'key' || key === 'value')) {
+          acc[path] = true;
+        }
+      }
+      return acc;
+    }, {})
+  }), {});
+
+const showCreateTable = (name, cols, table_options) => {
+  let sql = `CREATE TABLE ${name} (`;
+  sql += Object.keys(cols).map(c => ` "${c}" ${cols[c]}`).join(', ');
+  sql += ') ENGINE = ' + table_options['engine'];
+  return sql;
+};
+
+const showAlterTable = (name, cols, table_options) => {
+  let sql = `ALTER TABLE ${name} `;
+  sql += Object.keys(cols).map(c => ` ADD COLUMN "${c}" ${cols[c]}`).join(', ');
+  return sql;
+};
 
 class ClickHouse {
 
-  constructor(options, services) {
+  constructor(options, {log}) {
 
     this.defaults = {
       uploadInterval: 5,
       enabled: false
     };
+    this.inited = false;
 
-    const {log} = services;
 
-    this.log = services.log.child({module: 'CHDataWriter'});
+    this.log = log.child({module: 'CHDataWriter'});
     this.options = Object.assign({}, this.defaults, options);
-    this.configured = this.options.enabled && this.options.dsn && true;
+    this.options.uploadEvery = this.options.uploadInterval * 1000;
 
     this.writers = new Map();
+
     this.getWriter = (table) => {
       if (!this.writers.has(table)) {
         this.writers.set(table, new CHBufferWriter({table}, {log}));
@@ -36,112 +94,99 @@ class ClickHouse {
       return this.writers.get(table);
     };
 
-    if (this.configured) {
-      const connOptions = dsnParse(this.options.dsn);
+    const connOptions = dsnParse(this.options.dsn);
 
-      this.uploader = new CHUploader(connOptions, services);
-      this.log.info('ClickHouse writer activated');
-    }
-
-    setInterval(() => this.upload(), this.options.uploadInterval * 1000);
+    this.client = new CHClient(connOptions, {log});
   }
 
-  isConfigured() {
-    return this.configured;
+  async init() {
+
+    this.casInit();
+
+    // Loading struct
+    const colsList = await this.client.tables_columns();
+
+    this.tablesCols = handleColumns(colsList);
+    this.tablesNested = handleNested(this.tablesCols);
+
+    // this.log.debug(this.tablesCols, ' cols');
+    // this.log.debug(this.tablesNested, 'Nested cols');
+
+    // Creating and updating tables
+    for (const [table, configuration] of Object.entries(this.options.tables)) {
+      const {table_options, ...cols} = configuration;
+
+      if (!this.tablesCols[table]) {
+        this.log.info(`Creating table ${table}`);
+        const stmt = showCreateTable(table, cols, table_options);
+        this.client.run(stmt);
+      } else {
+        const diff = Object.keys(cols).filter(c => Object.keys(this.tablesCols[table]).indexOf(c) < 0);
+        if (diff.length > 0) {
+          this.log.info(`Altering table ${table}. new cols: ${diff.join(',')}`);
+          const stmt = showAlterTable(table, Object.assign({}, ...diff.map(c => ({[c]: cols[c]}))), table_options);
+          this.client.run(stmt);
+        }
+      }
+    }
+
+    // Adding cols
+
+    setInterval(
+      () => this.upload(),
+      this.options.uploadEvery);
+
+    this.log.info('Module ready');
   }
 
   upload() {
-
-    if (!this.configured) {
-      return;
-    }
 
     const writers = this.writers;
     this.writers = new Map();
 
     for (const [table, writer] of writers) {
+
+      this.log.debug(`uploding ${table}`);
+
       writer.close().then(filename => {
-        this.uploader.uploadFile(filename, table);
+        this.client.uploadFile(filename, table);
       });
     }
   }
 
+  write(msg) {
 
-  send_webhook(msg) {
+    const {time, type, ...rest} = msg;
 
-    if (!this.configured) {
-      return;
-    }
+    const key = msg.name.toLowerCase().replace(/\s/g, '_');
+    const table = this.options[type][key] || this.options[type].default;
 
-    let record = pick(msg, 'id', 'projectId', 'service', 'action', 'request_ip');
+    console.log(table);
 
-    record.timestamp = msg.time.getTime();
-    record.dateTime = msg.time.toISOString().slice(0, 19).replace('T', ' ');
-    record.date = record.dateTime.substr(0, 10);
+    // date and time
+    const dateString = time.toISOString().replace('T', ' ');
+    rest.date = dateString.substr(0, 10);
+    rest.dateTime = dateString.substr(0, 19);
+    rest.timestamp = time.getTime();
 
-    record.data = unzip(msg.data, String, String);
-    record = flatten(record, '.');
+    const row = flatRow(rest, this.tablesNested[table], this.tablesCols[table]);
 
-    this.getWriter(WEBHOOKS_TABLE).push(record);
-
-  }
-
-  send_event(msg) {
-
-    if (!this.configured) {
-      return;
-    }
-
-    const {page, session, library, data, client, browser, country, region, city, os, device, user, ...rest} = msg;
-
-    let record = pick(rest, 'id', 'projectId', 'name', 'uid', 'ip', 'userAgent');
-
-    record.timestamp = rest.time.getTime();
-    record.dateTime = rest.time.toISOString().slice(0, 19).replace('T', ' ');
-    record.date = record.dateTime.substr(0, 10);
-
-    record.page = pick(page, 'url', 'referrer', 'title');
-
-    record.user = pick(user || {}, 'id', 'traits', 'ymId', 'gaId');
-    record.user.traits = unzip(record.user.traits, String, String);
-
-    record.session = pick(session, 'type', 'engine', 'num', 'hasMarks', 'start', 'refHost', 'pageNum', 'eventNum');
-
-    const marks = session.marks || {};
-
-    record.campaign = marks.utm_campaign || marks.os_campaign;
-    record.source = marks.utm_source || marks.os_source;
-
-    record.session.marks = unzip(session.marks, String, String);
-
-    record.lib = pick(library || {}, 'name', 'libver', 'snippet');
-    record.client = pick(client || {}, 'type', 'name', 'version', 'tz', 'ts', 'tzOffset', 'platform', 'product');
-    record.browser = pick(browser || {}, 'if', 'wh');
-    record.browser.sr = pick(browser.sr || {}, 'tot', 'avail', 'asp', 'oAngle', 'oType');
-    record.country = pick(country || {}, 'iso', 'name_ru', 'name_en');
-    record.region = pick(region || {}, 'iso', 'name_ru', 'name_en');
-    record.city = pick(city || {}, 'id', 'name_ru', 'name_en');
-    record.os = pick(os || {}, 'name', 'version', 'platform');
-    record.device = pick(device || {}, 'type', 'brand', 'model');
-    record.isBot = typeof rest.isBot === 'boolean' ? Number(rest.isBot) : -1;
-    record.data = unzip(data, String, String);
-
-    record = flatten(record, '_');
-
-    Joi.validate(record, eventSchema).then(values => {
-
-      this.log.debug(record, 'Validated CH record');
-
-      this.getWriter(EVENTS_TABLE).push(values);
-
-    }).catch(err => {
-
-      this.log.error(err);
-
-    });
-
+    this.getWriter(table).push(row);
 
   }
+
+  /**
+   * Check and set init status
+   * @return {boolean}
+   */
+  casInit() {
+    if (this.inited) {
+      throw new Error('Already initialized');
+    }
+    this.inited = true;
+    return false;
+  }
+
 }
 
 module.exports = ClickHouse;

@@ -112,17 +112,18 @@ class TrackerHttpApi {
 
       this.stat.mark('trackPost');
 
-      const transportData = {
+      const meta = {
+        type: 'event',
         uid: req.uid,
         ip: req.ip,
         userAgent: req.headers['user-agent']
       };
 
       if (Object.keys(req.body).length === 0) {
-        return this.log.info(transportData, 'Empty PostData')
+        return this.log.info(meta, 'Empty PostData')
       }
 
-      const msg = Object.assign({}, req.body, transportData);
+      const msg = Object.assign({}, req.body, meta);
 
       res.json({result: 'queued'});
 
@@ -130,11 +131,7 @@ class TrackerHttpApi {
 
         const validated = await alcoRequestSchema.validate(msg);
 
-        this.log.debug(validated, 'Validated request');
-
-        this.log.debug({event: {name: validated.name}}, 'Tracking');
-
-        this.trackerService.track(validated).then(() => {
+        this.trackerService.toStore(validated).then(() => {
           this.stat.histPush('trackPostHandled', timeDuration(req.startAt));
         });
 
@@ -167,16 +164,18 @@ class TrackerHttpApi {
       this.stat.mark('webhook');
 
       const msg = {
+        type: 'webhook',
+        name: `${req.params.service}/${req.params.action}`,
         projectId: req.params.projectId,
         service: req.params.service,
         action: req.params.action,
         data: Object.assign({}, req.body, req.query),
-        request_ip: req.ip
+        remote_ip: req.ip
       };
 
       res.json({result: 'queued', msg});
 
-      this.trackerService.webhook(msg).then(() => {
+      this.trackerService.toStore(msg).then(() => {
         this.stat.histPush('webhookHandled', timeDuration(req.startAt));
       });
 

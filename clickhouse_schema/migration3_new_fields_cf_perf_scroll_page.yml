@@ -14,3 +14,7 @@
 - ALTER TABLE events ADD COLUMN page_hash String;
 - ALTER TABLE events ADD COLUMN page_hostname String;
 - ALTER TABLE events ADD COLUMN page_proto Enum8('' = 0, 'http' = 1, 'https' = 2);
+- ALTER TABLE events ADD COLUMN other Nested(
+    key String,
+    value String
+  );

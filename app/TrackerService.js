@@ -1,97 +1,58 @@
 'use strict';
 
 const simpleflake = require('simpleflake');
-const pick = require('es6-pick');
-
-const CHWriter = require('./writers/ClickHouse');
-const MPWriter = require('./writers/MixPanel');
-const HttpConnector = require('./HttpConnector');
+const enrichers = require('./enrichers');
+const writers = require('./writers');
 
 class TrackerService {
 
   constructor(config, {storage, log}) {
 
+    this.log = log.child({mod: 'TrackerService'});
+
     this.config = config;
     this.storage = storage;
 
-    this.sypexgeoService = new HttpConnector(config.services.sypexgeo, {log});
-    this.devicedService = new HttpConnector(config.services.deviced, {log});
+    this.enrichers = Object.keys(enrichers).map(k => {
+      return new enrichers[k](config.services[k], {log});
+    });
 
-    const availableWriters = [
-      new CHWriter(config.clickhouse, {log}),
-      new MPWriter(config.mixpanel, {log})
-    ];
-
-    this.writers = availableWriters.filter(e => e.isConfigured());
+    this.writers = Object.keys(writers).map(k => {
+      return new writers[k](config.writers[k], {log});
+    });
   }
 
   async init() {
-
+    await Promise.all(this.writers.map(w => w.init()));
   }
 
   async enrich(msg) {
 
-    if (msg.ip) {
-      const geo = await this.sypexgeoService.query({ip: msg.ip});
-
-      if (geo.success === true) {
-        msg.country = Object.assign(pick(geo.country || {}, 'iso', 'name_ru', 'name_en'), msg.country);
-        msg.region = Object.assign(pick(geo.region || {}, 'iso', 'name_ru', 'name_en'), msg.region);
-        msg.city = Object.assign(pick(geo.city || {}, 'id', 'name_ru', 'name_en'), msg.city);
+    (await Promise.all(
+      this.enrichers.map(e => e.get(msg))
+    )).forEach((data, i) => {
+      if (data) {
+        const section = this.enrichers[i].prefix;
+        msg[section] = Object.assign(msg[section] || {}, data);
       }
-    }
-
-    if (msg.userAgent) {
-
-      const dd = await this.devicedService.query({ua: msg.userAgent});
-
-      if (dd.success === true) {
-
-        msg.isBot = dd.isBot;
-
-        if (dd.isBot) {
-
-          msg.device = Object.assign({
-            type: 'bot',
-            brand: dd.producer && dd.producer.name,
-            model: dd.bot && dd.bot.name
-          }, msg.device || {});
-
-        } else {
-
-          msg.os = Object.assign(pick(dd.os || {}, 'name', 'version', 'platform'), msg.os || {});
-          msg.client = Object.assign(pick(dd.client || {}, 'type', 'name', 'version'), msg.client || {});
-          msg.device = Object.assign(pick(dd.device || {}, 'type', 'brand', 'model'), msg.device || {});
-
-        }
-      }
-    }
+    });
 
     return msg;
   }
 
-  async webhook(msg) {
+  async toStore(msg) {
+
     msg.id = this.generateEventId();
-    msg.time = new Date();
-
-    this.writers.map(w => {
-      w.send_webhook(Object.assign({}, msg));
-    });
-
-  }
-
-  async track(msg) {
-
-    msg.id = msg.id || this.generateEventId();
     msg.time = new Date();
 
     await this.enrich(msg).then(msg => {
       this.writers.map(w => {
-        w.send_event(Object.assign({}, msg));
+        w.write(Object.assign({}, msg));
       });
     }).catch(e => {
-      console.error(e);
+      this.log.error(e);
     });
+
   }
 
   generateEventId() {

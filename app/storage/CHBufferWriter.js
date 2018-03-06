@@ -15,7 +15,7 @@ class CHBufferWriter {
    * @param options
    * @param services
    */
-  constructor(options, services) {
+  constructor(options, {log}) {
 
     const {table} = options;
 
@@ -23,7 +23,7 @@ class CHBufferWriter {
     this.folder = 'upload_ch';
     this.fileName = `${this.startDate.toISOString()}.log`;
 
-    this.log = services.log.child({group: 'CHBufferWriter', obj:this.fileName});
+    this.log = log.child({group: 'CHBufferWriter', obj:this.fileName});
 
     this.buffers = [];
     this.fileReady = false;
@@ -77,7 +77,7 @@ class CHBufferWriter {
 
   push(object) {
 
-    const chunk = new Buffer(`${JSON.stringify(object, boolToInt)  }\n`);
+    const chunk = new Buffer(JSON.stringify(object, boolToInt)+'\n');
 
     this.fileReady
       ? this.writeToFile(chunk)

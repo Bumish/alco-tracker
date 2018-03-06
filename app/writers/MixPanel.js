@@ -16,13 +16,9 @@ class MixPanel {
 
     this.log = services.log.child({module: 'MPDataWriter'});
     this.options = Object.assign({}, this.defaults, options);
-    this.configured = this.options.enabled && this.options.token && true;
+    this.configured_flag = this.options.enabled && this.options.token && true;
 
     this.queue = [];
-
-    if (!this.configured) {
-      return;
-    }
 
     this.mp = Mixpanel.init(this.options.token, {
       protocol: 'https'
@@ -33,12 +29,15 @@ class MixPanel {
     this.log.info('Mixpanel writer activated');
   }
 
-  isConfigured() {
-    return this.configured;
+  /**
+   * Initialize stub
+   * @return {Promise<boolean>}
+   */
+  async init() {
+    return true;
   }
 
   upload() {
-
     const calls = this.queue;
     this.queue = [];
 
@@ -55,31 +54,17 @@ class MixPanel {
   }
 
 
-  send_webhook(msg) {
+  write(msg) {
 
-    msg.time = Math.round(msg.time.getTime() / 1000);
-    msg.name = `${msg.service}-${msg.action}`;
+    const {type, time, ...rest} = msg;
 
-    this.queue.push(msg);
-
-  }
-
-
-  send_event(msg) {
-
-
-    if (!this.configured) {
-      return;
+    if (rest.uid) {
+      rest.distinct_id = rest.uid;
     }
 
-    const mpEvent = flatten(pick(msg, 'name', 'id', 'ip', 'projectId', 'session', 'browser', 'client', 'device',
-      'ymClientId', 'gaClientId', 'os', 'country', 'region', 'city', 'page', 'data', 'user', 'library', 'perf'
-    ));
+    rest.time = Math.round(time.getTime() / 1000);
 
-    mpEvent.time = Math.round(msg.time.getTime() / 1000);
-    mpEvent.distinct_id = msg.uid;
-
-    this.queue.push(mpEvent);
+    this.queue.push(flatten(rest));
 
   }
 }

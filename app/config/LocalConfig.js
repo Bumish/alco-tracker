@@ -2,7 +2,7 @@
 
 const path = require('path');
 const fs = require('fs');
-
+const mergeDeep = require('../functions/mergeDeep');
 const ejs = require('ejs');
 const yaml = require('js-yaml');
 
@@ -40,7 +40,7 @@ class LocalConfig {
     const custom = await this.customConfig();
     const main = this.loadConfig(this.serviceConfigFn);
 
-    return Object.assign(main, custom);
+    return mergeDeep(main, custom);
 
   }
 
