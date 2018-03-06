@@ -16,6 +16,17 @@ writers:
     enabled: true
     dsn: <%= env.CH_DSN %>
     uploadInterval: 2
+    sync:
+      skip: migrations
+
+    base:
+      id: UInt64
+      date: Date
+      dateTime: DateTime
+      timestamp: UInt64
+      projectId: UInt32
+      name: String
+
     event:
       default: events_v2
       activity: activity
@@ -25,27 +36,15 @@ writers:
       test/test: wh_test_test
     tables:
       webhooks_v2:
-        id: UInt64
-        date: Date
-        dateTime: DateTime
-        timestamp: UInt64
-        projectId: UInt32
-        name: String
         service: String
         action: String
         remote_ip: String
         data.key: Array(String)
         data.value: Array(String)
-        table_options:
+        _options:
           engine: MergeTree(date, (intHash32(sipHash64(service)), intHash32(sipHash64(action)), date), 8192)
 
       events_v2: &events
-        id: UInt64
-        date: Date
-        dateTime: DateTime
-        timestamp: UInt64
-        projectId: UInt32
-        name: String
         uid: UInt64
         ip: String
         userAgent: String
@@ -139,7 +138,7 @@ writers:
         perf_rse: Int16
         perf_rss: Int16
         perf_scs: Int16
-        table_options:
+        _options:
           engine: MergeTree(date, (intHash32(uid), date), 8192)
 
       activity:

@@ -7,7 +7,6 @@ const wait = require('../functions/waitUntil');
 
 const boolToInt = (k, v) => (typeof v === 'boolean' ? Number(v) : v);
 
-
 class CHBufferWriter {
 
   /**
@@ -76,14 +75,13 @@ class CHBufferWriter {
 
 
   push(object) {
-
     const chunk = new Buffer(JSON.stringify(object, boolToInt)+'\n');
 
     this.fileReady
       ? this.writeToFile(chunk)
       : this.buffers.push(chunk);
-
   }
+
 
   async close() {
 

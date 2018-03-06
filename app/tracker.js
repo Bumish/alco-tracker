@@ -53,3 +53,6 @@ const localConfig = new LocalConfig({
 })();
 
 
+process.on('unhandledRejection', error => {
+  console.error('unhandledRejection', error);
+});

@@ -5,12 +5,14 @@
     "node": true
   },
   "extends": [
-    "eslint:recommended",
+//    "eslint:recommended",
     "plugin:import/errors",
-    "plugin:import/warnings",
-    "@jetbrains/eslint-config/node"
+    "plugin:import/warnings"
+//    "@jetbrains/eslint-config/base",
+//    "@jetbrains/eslint-config/node"
   ],
   "rules": {
+    "quotes": [ 1, "single" ],
     "strict": [2, "global"],
     "max-len": [2, 120, 4],
     "arrow-body-style": [2, "as-needed"],
@@ -18,19 +20,34 @@
     "arrow-spacing": [2, {"before": true, "after": true}],
     "constructor-super": 2,
     "generator-star-spacing": [2, {"before": false, "after": true}],
+    "indent": ["error", 2, {
+      "MemberExpression": 1,
+      "ObjectExpression": 1
+    }],
+    "newline-per-chained-call": [1, { "ignoreChainWithDepth": 2 }],
     "no-class-assign": 2,
     "no-confusing-arrow": [2, {"allowParens": true}],
     "no-const-assign": 2,
     "no-constant-condition": 2,
     "no-dupe-class-members": 2,
     "no-this-before-super": 2,
+    "no-console": [2, { "allow": ["warn", "error"] }],
     "no-var": 2,
-    "object-shorthand": 2,
+    "object-shorthand": 1,
+    "dot-location": ["error", "property"],
+    "object-property-newline": ["warn", { "allowAllPropertiesOnSameLine": true }],
     "prefer-arrow-callback": [2, {"allowNamedFunctions": true}],
     "prefer-const": 2,
     "prefer-spread": 2,
     "prefer-template": 2,
     "require-yield": 2,
+    "require-jsdoc": [2, {
+      "require": {
+//        "FunctionDeclaration": true,
+//        "MethodDefinition": true,
+//        "ClassDeclaration": true
+      }
+    }],
     "import/no-unresolved": 2,
     "import/named": 2,
     "import/namespace": 2,
@@ -40,7 +57,7 @@
     "import/first": 2,
     "import/no-duplicates": 2,
     "import/extensions": [2, "always", {"js": "never"}],
-    "import/order": [2, {"newlines-between": "always-and-inside-groups"}],
+//    "import/order": [2, {"newlines-between": "always-and-inside-groups"}],
     "import/newline-after-import": 2,
     "import/no-named-default": 2
   },

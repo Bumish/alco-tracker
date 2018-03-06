@@ -1,91 +1,152 @@
 'use strict';
 
-const fs = require('fs');
-
 const Promise = require('bluebird');
+const fs = Promise.promisifyAll(require('fs'));
 const got = require('got');
 
-const afs = Promise.promisifyAll(fs);
+const CHBufferWriter = require('./CHBufferWriter');
 
-
+/**
+ * Base ClickHouse lib.
+ * Used for raw data queries and modifications
+ * Also provide object-push style writing
+ */
 class CHClient {
 
+  /**
+   * @param options
+   * @param log
+   */
   constructor(options, {log}) {
 
-    options = options || {};
+    this.log = log.child({name: this.constructor.name});
+    this.log.info({url: this.url}, 'Starting ClickHouse client');
 
-    this.log = log.child({module: 'CHClient'});
-    this.ch_url = `${options.protocol}//${options.hostname}:${options.port}`;
-    this.db = options.db;
+    this.options = Object.assign({
+      uploadInterval: 5,
+      enabled: false
+    }, options);
+
     this.httpOptions = {
       timeout: 5000
     };
 
-    this.log.info({host: this.ch_url}, 'construction CH reader');
+    const {protocol, hostname, port, db} = this.options;
+    this.db = db;
+    this.url = `${protocol}//${hostname}:${port}`;
 
+    this.writers = new Map();
+
+    setInterval(
+      () => this.flushWriters(),
+      this.options.uploadInterval * 1000);
   }
 
-  run(q) {
+  /**
+   * Returns writer for table
+   * @param table
+   * @return {CHBufferWriter}
+   */
+  getWriter(table) {
+    if (!this.writers.has(table)) {
+      this.writers.set(table, new CHBufferWriter({table}, {log: this.log}));
+    }
+    return this.writers.get(table);
+  }
+
+  /**
+   * Flushing writers
+   */
+  flushWriters() {
+    const writers = this.writers;
+    this.writers = new Map();
+
+    for (const [table, writer] of writers) {
+
+      this.log.debug(`uploding ${table}`);
+
+      writer.close()
+        .then(filename => {
+          this.uploadFile(filename, table);
+        });
+    }
+  }
+
+  /**
+   * Execution data modification query
+   * @param query
+   */
+  run(query) {
 
     const queryParams = {
       database: this.db
     };
 
-    this.log.debug(queryParams, 'Query');
+    this.log.debug(Object.assign({query}, queryParams), 'Query');
 
     return got.post(
-      this.ch_url,
-      {query: queryParams, body: q}
-    ).then(
-      response => response.body
-    ).catch(
-      err => this.log.error(err, 'Error during querying data')
-    );
+      this.url, {
+        query: queryParams,
+        body: query
+      })
+      .then(res => res.body)
+      .catch(err => this.log.error({
+        err: `${err.statusCode}: ${err.statusMessage}`,
+        body: err.response.body
+      }, 'Error during executing query'));
   }
 
-  query(q) {
+  /**
+   * Executes query and return resul
+   * @param query <string> SQL query
+   * @return Promise<Buffer>
+   */
+  query(query) {
 
-    const queryParams = {
+    const params = {
       database: this.db,
-      query: q
+      query
     };
 
-    this.log.debug(queryParams, 'Query');
+    this.log.debug(params, 'Query');
 
-    return got(
-      this.ch_url,
-      {query: queryParams}
-    ).then(
-      response => response.body
-    ).catch(
-      err => this.log.error(err, 'Error during querying data')
-    );
+    return got(this.url, {query: params})
+      .then(response => response.body)
+      .catch(
+        err => this.log.error(err, 'Error during querying data'));
+
   }
 
-  query_sream(q) {
+  /**
+   * Executes query and return stream
+   * @param query <string> SQL query
+   * @return Stream
+   */
+  query_sream(query) {
 
     const queryParams = {
       database: this.db,
-      query: q
+      query
     };
 
     this.log.debug(queryParams, 'Query stream');
-    return got.stream(this.ch_url, {query: queryParams});
+    return got.stream(this.url, {query: queryParams});
   }
 
+  /**
+   * Returns DB structure
+   * @return Promise<Buffer>
+   */
   tables_columns() {
-
-    return this.query(`
-      SELECT table, name, type 
-      FROM system.columns 
-      WHERE database = '${this.db}' FORMAT JSON
-    `).then((result) => {
-      return JSON.parse(result).data;
-    });
+    return this.query(`SELECT table, name, type FROM system.columns WHERE database = '${this.db}' FORMAT JSON`)
+      .then(result => JSON.parse(result.toString()))
+      .then(parsed => parsed.data);
   }
 
-
-  uploadFile(fn, table){
+  /**
+   * Uploading each-line-json to ClickHouse
+   */
+  uploadFile(fn, table) {
 
     const queryParams = {
       database: this.db,
@@ -94,21 +155,24 @@ class CHClient {
 
     this.log.debug(queryParams, 'Query');
 
-    afs.createReadStream(fn)
-    .pipe(got.stream.post(this.ch_url, Object.assign({}, this.httpOptions, {query: queryParams}) ))
-    .on('error', (err, body, res) => {
-      this.log.error(err, 'Upload error');
-    })
-    .on('response', response => {
-      if(response.statusCode === 200){
-
-        afs.unlinkAsync(fn).then(() => {});
-
-      } else {
-
-        this.log.warn({body: response.body, code: response.statusCode}, 'Wrong code');
-      }
-    });
+    fs.createReadStream(fn)
+      .pipe(got.stream.post(this.url, Object.assign({}, this.httpOptions, {query: queryParams})))
+      .on('error', (err, body, res) => {
+        this.log.error(err, 'Upload error');
+      })
+      .on('response', res => {
+        this.log.debug(`Upload result: ${res.statusCode} ${res.statusMessage}`);
+        if (res.statusCode === 200) {
+          fs.unlink(fn, () => {
+          });
+        }
+        else {
+          this.log.warn({
+            body: res.body,
+            code: res.statusCode
+          }, 'Wrong code');
+        }
+      });
   }
 
 }

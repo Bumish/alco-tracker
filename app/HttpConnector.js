@@ -17,7 +17,8 @@ class HTTPConnector {
 
   constructor(options, {log}) {
 
-    this.log = log;
+    this.log = log.child({name: this.constructor.name});
+
     if (!options.url) {
       this.log.warn('HTTPConnector: You should provide api url');
     }
@@ -43,7 +44,7 @@ class HTTPConnector {
     const requestKey = createHash(Object.values(params).join(''));
     const cached = this.cache.get(requestKey);
 
-    this.log.debug({url, cached:Boolean(cached)}, 'Querying api');
+    this.log.debug(`Querying ${url} cache: ${Boolean(cached)}`);
 
     if (cached) {
       return JSON.parse(cached);

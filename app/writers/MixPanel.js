@@ -53,7 +53,6 @@ class MixPanel {
     }
   }
 
-
   write(msg) {
 
     const {type, time, ...rest} = msg;
