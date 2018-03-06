@@ -49,7 +49,7 @@ module.exports = Joi.object().keys({
     libver: Joi.number().integer().required(),// ch+
     name: Joi.string().required(),            // ch+
     snippet: Joi.number().integer().required()// ch+
-  }).required(),                              // O
+  }).options({stripUnknown: true}).required(),                              // O
   page: Joi.object().keys({                   // O
     url: Joi.string().uri().required(),   // ch+
     referrer: Joi.string().uri().allow('').required(),// ch+
@@ -94,7 +94,7 @@ module.exports = Joi.object().keys({
     ymClientId: Joi.any().optional().strip(),            // old format
     traits: Joi.object().unknown(true).default({}).optional()// ch+ (optional user traits)
   }).unknown(true).required()                 // ch+
-});
+}).rename('library', 'lib', {ignoreUndefined:true});
 
 // === to rename (nested):
 // session_marks
