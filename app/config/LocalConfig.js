@@ -31,20 +31,20 @@ class LocalConfig {
 
   }
 
-  async serviceConfig() {
+  serviceConfig() {
 
     if (!fs.existsSync(this.serviceConfigFn)) {
       return console.error('config not found');
     }
 
-    const custom = await this.customConfig();
+    const custom = this.customConfig();
     const main = this.loadConfig(this.serviceConfigFn);
 
     return mergeDeep(main, custom);
 
   }
 
-  async customConfig() {
+  customConfig() {
 
     if (!fs.existsSync(this.customConfigFn)) {
       console.log('custom config not present');

@@ -1,7 +1,7 @@
 -- DROP TABLE IF EXISTS migrations;
 CREATE TABLE IF NOT EXISTS migrations
 (
-    name String
+    youisyourdaddy String
 
 ) ENGINE = TinyLog();
 

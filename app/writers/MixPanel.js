@@ -7,14 +7,14 @@ const flatten = require('../functions/flatten');
 
 class MixPanel {
 
-  constructor(options, services) {
+  constructor(options, {log}) {
 
     this.defaults = {
       uploadInterval: 1, // seconds
       enabled: false
     };
 
-    this.log = services.log.child({module: 'MPDataWriter'});
+    this.log = log.child({name: this.constructor.name});
     this.options = Object.assign({}, this.defaults, options);
     this.configured_flag = this.options.enabled && this.options.token && true;
 

@@ -2,7 +2,8 @@
 
 const path = require('path');
 
-require('dotenv').config();
+require('dotenv')
+  .config();
 
 const TrackerService = require('./TrackerService');
 const TrackerWebApi = require('./TrackerWebApi');
@@ -14,27 +15,25 @@ const localConfig = new LocalConfig({
   path: path.resolve(__dirname, '..', 'config')
 });
 
+const config = localConfig.serviceConfig();
+config.isProduction = process.env.NODE_ENV === 'production';
+
+// Logger
+const log = pino(config.pino);
+const services = {log};
+
+// Stat
+services.stat = new ServiceStat(config, services);
+
 
 (async () => {
 
   try {
-
-    const config = await localConfig.serviceConfig();
-    config.isProduction = process.env.NODE_ENV === 'production';
-
-    // Logger
-    const log = pino(config.pino);
-    const services = {log};
-
     log.info('Starting Alcolytics tracker');
-    log.debug(config, 'Config');
 
     // Services
-    services.stat = new ServiceStat(config, services);
     services.trackerService = new TrackerService(config, services);
     services.trackerWebApi = new TrackerWebApi(config, services);
-
-    // Async storage init
 
     // Initializing main service
     await services.trackerService.init();
@@ -42,17 +41,14 @@ const localConfig = new LocalConfig({
     // Starting HTTP API
     await services.trackerWebApi.start();
 
-    log.info('Ready');
+    log.info('Alcolytics ready');
 
-
-  } catch (e) {
-
-    console.error(e);
-
+  } catch (error) {
+    log.error(error);
   }
 })();
 
-
 process.on('unhandledRejection', error => {
+  services.stat.mark('unhandledRejection');
   console.error('unhandledRejection', error);
 });
