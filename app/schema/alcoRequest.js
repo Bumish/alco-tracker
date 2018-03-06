@@ -90,6 +90,8 @@ module.exports = Joi.object().keys({
     id: Joi.string().allow('').default('').optional(),// ch+
     gaId: Joi.string().optional(),            // ch+
     ymId: Joi.string().optional(),            // ch+
+    gaClientId: Joi.any().optional().strip(),            // old format
+    ymClientId: Joi.any().optional().strip(),            // old format
     traits: Joi.object().unknown(true).default({}).optional()// ch+ (optional user traits)
   }).unknown(true).required()                 // ch+
 });
