@@ -18,16 +18,7 @@ writers:
     uploadInterval: 2
     sync:
       skip: migrations
-
-    base:
-      id: UInt64
-      date: Date
-      dateTime: DateTime
-      timestamp: UInt64
-      channel: Enum8('' = 0, 'other' = 1, 'alcojs' = 5, 'webhook' = 6, 'pixel' = 7, 'r1' = 8 , 'r2' = 9, 'r3' = 10)
-      projectId: UInt32
-      name: String
-
+    # data distribution
     alcojs:
       default: events_v2
       activity: activity
@@ -37,6 +28,15 @@ writers:
       test/test: wh_test_test
     pixel:
       default: events_v2
+    # common tables fields
+    base:
+      id: UInt64
+      date: Date
+      dateTime: DateTime
+      timestamp: UInt64
+      channel: Enum8('' = 0, 'other' = 1, 'alcojs' = 5, 'webhook' = 6, 'pixel' = 7, 'r1' = 8 , 'r2' = 9, 'r3' = 10)
+      projectId: UInt32
+      name: String
     tables:
       webhooks_v2:
         service: String
@@ -46,7 +46,6 @@ writers:
         data.value: Array(String)
         _options:
           engine: MergeTree(date, (intHash32(sipHash64(service)), intHash32(sipHash64(action)), date), 8192)
-
       events_v2: &events
         uid: UInt64
         ip: String
