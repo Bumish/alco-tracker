@@ -21,7 +21,8 @@ const PixelSchema = require('./schema/pixel');
 
 const asyncUtil = fn =>
   (req, res, next, ...args) =>
-    fn(req, res, next, ...args).catch(next);
+    fn(req, res, next, ...args)
+      .catch(next);
 
 
 class TrackerHttpApi {
@@ -74,7 +75,10 @@ class TrackerHttpApi {
       next();
     });
     this.app.use(bodyParser.json({limit: '5kb'}));
-    this.app.use(bodyParser.urlencoded({extended: false, limit: '5kb'}));
+    this.app.use(bodyParser.urlencoded({
+      extended: false,
+      limit: '5kb'
+    }));
     this.app.use(cookieParser());
     this.app.use(cors({
       origin: true,
@@ -93,7 +97,10 @@ class TrackerHttpApi {
 
       req.uid = isValidUid(receivedUid) && receivedUid || this.trackerService.generateUid();
 
-      res.cookie(uidParam, req.uid, {expires: new Date(Date.now() + cookieMaxAge * 1000), httpOnly: true});
+      res.cookie(uidParam, req.uid, {
+        expires: new Date(Date.now() + cookieMaxAge * 1000),
+        httpOnly: true
+      });
 
       next();
 
@@ -102,7 +109,8 @@ class TrackerHttpApi {
     this.app.get('/img', asyncUtil(async (req, res) => {
 
       this.stat.mark('trackGif');
-      res.type('gif').send(emptyGif);
+      res.type('gif')
+        .send(emptyGif);
 
       const meta = {
         channel: 'pixel',
@@ -113,11 +121,15 @@ class TrackerHttpApi {
 
       try {
 
-        this.log.debug('Tracking using pixel');
         // if (req.query['b64']){
-        const raw = Buffer.from(req.query['b64'], 'base64').toString();
+        const raw = Buffer.from(req.query['b64'], 'base64')
+          .toString();
         const msg = Object.assign({}, JSON.parse(raw), meta);
         // }
+
+        if (msg['error']) {
+          this.log.warn('Tracking using pixel');
+        }
 
         const clean = await Joi.validate(msg, PixelSchema);
 
@@ -126,7 +138,7 @@ class TrackerHttpApi {
         this.stat.histPush('trackGifHandled', timeDuration(req.startAt));
 
       } catch (error) {
-        this.log.error(error)
+        this.log.error(error);
       }
 
     }));
@@ -143,7 +155,7 @@ class TrackerHttpApi {
       };
 
       if (Object.keys(req.body).length === 0) {
-        return this.log.info(meta, 'Empty PostData')
+        return this.log.info(meta, 'Empty PostData');
       }
 
       const msg = Object.assign({}, req.body, meta);
@@ -202,9 +214,10 @@ class TrackerHttpApi {
 
       res.json({result: 'queued'});
 
-      this.trackerService.toStore(msg).then(() => {
-        this.stat.histPush('webhookHandled', timeDuration(req.startAt));
-      });
+      this.trackerService.toStore(msg)
+        .then(() => {
+          this.stat.histPush('webhookHandled', timeDuration(req.startAt));
+        });
 
     });
 
@@ -223,7 +236,8 @@ class TrackerHttpApi {
 
       console.error('Error middleware', err.message, err.stack);
       if (!res.headersSent) {
-        res.status(500).json({error: true});
+        res.status(500)
+          .json({error: true});
       }
 
     });
