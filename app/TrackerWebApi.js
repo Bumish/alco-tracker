@@ -128,7 +128,7 @@ class TrackerHttpApi {
         // }
 
         if (msg['error']) {
-          this.log.warn('Tracking using pixel');
+          this.log.warn(msg, 'Tracking using pixel');
         }
 
         const clean = await Joi.validate(msg, PixelSchema);
