@@ -62,7 +62,7 @@ class MixPanel {
       msg.distinct_id = msg.uid;
     }
 
-    msg.time = Math.round(time.getTime() / 1000);
+    msg.time = Math.round(msg.time.getTime() / 1000);
     this.queue.push(flatten(msg));
 
   }
