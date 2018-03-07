@@ -74,15 +74,15 @@ class CHClient {
    * Flushing writers
    */
   flushWriters() {
-    const writers = this.writers;
-    this.writers = new Map();
+    const tasks = [...this.writers.values()];
+    this.writers.clear();
 
-    for (const [table, writer] of writers) {
+    for (const task of tasks) {
 
-      this.log.debug(`uploding ${table}`);
+      this.log.debug(`uploding ${task.table}`);
 
-      writer.close()
-        .then(filename => {
+      task.close()
+        .then(({table, filename}) => {
           this.uploadFile(filename, table);
         });
     }

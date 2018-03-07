@@ -16,8 +16,7 @@ class CHBufferWriter {
    */
   constructor(options, {log}) {
 
-    const {table} = options;
-
+    this.options = options;
     this.startDate = new Date();
     this.folder = 'upload_ch';
     this.fileName = `${this.startDate.toISOString()}.log`;
@@ -27,19 +26,20 @@ class CHBufferWriter {
     this.buffers = [];
     this.fileReady = false;
     this.writing = false;
-    this.objectName = `${this.folder}/${table}-${this.fileName}`;
+    this.objectName = `${this.folder}/${this.table}-${this.fileName}`;
 
-    fsa.openAsync(this.objectName, 'w').then(fd => {
+    fsa.openAsync(this.objectName, 'w')
+      .then(fd => {
 
-      this.fd = fd;
-      this.fileReady = true;
-      this.flushBuffer();
+        this.fd = fd;
+        this.fileReady = true;
+        this.flushBuffer();
 
-    }).catch(err => {
+      }).catch(err => {
 
-      this.log.error(err, 'Error writing to temp file');
+        this.log.error(err, 'Error writing to temp file');
 
-    });
+      });
   }
 
   flushBuffer() {
@@ -49,9 +49,9 @@ class CHBufferWriter {
     }
 
     const buffer = Buffer.concat(this.buffers);
+    // empty array buffer
     this.buffers = [];
     this.writeToFile(buffer);
-
   }
 
   writeToFile(data) {
@@ -89,7 +89,7 @@ class CHBufferWriter {
 
       if (this.buffers.length) {
         this.log.warn('buffer not empty, waiting');
-        await wait(() => !this.buffers.length, 10, 50);
+        await wait(() => !this.buffers.length, 20, 100);
 
         if (this.buffers.length) {
           this.log.warn('buffer still not empty, waiting more');
@@ -98,17 +98,22 @@ class CHBufferWriter {
 
       if (this.writing) {
         this.log.debug('file writing in process. waiting');
-        await wait(() => !this.writing, 10, 50);
+        await wait(() => !this.writing, 20, 100);
       }
 
       await fsa.closeAsync(this.fd);
-      return this.objectName;
+      return {table: this.table, filename: this.objectName};
 
     } catch (e) {
       this.log.error({bufferLength: this.buffers.length, writing: this.writing}, 'Error while closing temp file.');
       throw e;
     }
   }
+
+  get table(){
+    return this.options.table;
+  }
+
 }
 
 
