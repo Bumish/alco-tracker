@@ -59,7 +59,7 @@ class MixPanel {
   write(msg) {
 
     if (msg.uid) {
-      msg.distinct_id = rest.uid;
+      msg.distinct_id = msg.uid;
     }
 
     msg.time = Math.round(time.getTime() / 1000);
