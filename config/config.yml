@@ -128,11 +128,12 @@ writers:
         scroll_topOffset: UInt16
         scroll_scroll: UInt16
         scroll_maxScroll: UInt16
-        cf_locstor: Int16
-        cf_addel: Int16
-        cf_promise: Int16
-        cf_sbeacon: Int16
-        cf_atob: Int16
+        cf_locstor: Int16 DEFAULT -1
+        cf_addel: Int16 DEFAILT -1
+        cf_promise: Int16 DEFAULT -1
+        cf_sbeacon: Int16 DEFAULT -1
+        cf_atob: Int16 DEFAULT -1
+        cf_wpush: Int16 DEFAULT -1
         perf_ce: Int16
         perf_cs: Int16
         perf_dc: Int16

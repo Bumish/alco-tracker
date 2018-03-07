@@ -14,9 +14,11 @@ function defaultDict(type) {
       }
       return dict[key];
     },
+    set: (key, val) => dict[key] = val,
     has: key => dict.hasOwnProperty(key),
     keys: () => Object.keys(dict),
-    dict: dict
+    entries: () => Object.entries(dict),
+    dict
   };
 }
 

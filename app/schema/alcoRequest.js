@@ -42,8 +42,9 @@ module.exports = Joi.object().keys({
     addel: Joi.boolean().required(),          // ch+sub
     promise: Joi.boolean().required(),        // ch+sub
     sbeacon: Joi.boolean().required(),        // ch+sub
-    atob: Joi.boolean().required()           // ch+sub
-  }).optional(),                              // O
+    atob: Joi.boolean().required(),           // ch+sub
+    wpush: Joi.boolean().optional()           // ch+sub
+  }).options({stripUnknown: true}).optional(),                              // O
   data: Joi.object().keys({}).unknown(true).required(),// Och+
   lib: Joi.object().keys({                // O
     libver: Joi.number().integer().required(),// ch+
@@ -93,7 +94,7 @@ module.exports = Joi.object().keys({
     gaClientId: Joi.any().optional().strip(),            // old format
     ymClientId: Joi.any().optional().strip(),            // old format
     traits: Joi.object().unknown(true).default({}).optional()// ch+ (optional user traits)
-  }).unknown(true).required()                 // ch+
+  }).required().unknown(true)                // ch+
 }).rename('library', 'lib', {ignoreUndefined:true});
 
 // === to rename (nested):

@@ -7,6 +7,8 @@ COPY package.json /usr/src/app/
 COPY yarn.lock /usr/src/app/
 
 RUN yarn install --production
+RUN yarn global add pino
+
 
 COPY . /usr/src/app
 

@@ -6,6 +6,7 @@ const Lazy = require('lazy.js');
 const showCreateTable = (name, cols, table_options) => {
   let query = `CREATE TABLE ${name} (`;
   query += Object.keys(cols)
+    .filter(c => !!cols[c])
     .map(c => ` "${c}" ${cols[c]}`)
     .join(', ');
   query += `) ENGINE = ${  table_options['engine']}`;
@@ -16,6 +17,7 @@ const showCreateTable = (name, cols, table_options) => {
 const showAlterTable = (name, cols, table_options) => {
   let query = `ALTER TABLE ${name} `;
   query += Object.keys(cols)
+    .filter(c => !!cols[c])
     .map(c => ` ADD COLUMN "${c}" ${cols[c]}`)
     .join(', ');
   return query;
@@ -56,17 +58,16 @@ class CHSync {
     for (const row of list) {
       const {table, name, type} = row;
       const [key, sub] = name.split('.');
-      this.tablesCols
-        .get(table)[name] = type;
+      this.tablesCols.get(table)[name] = type;
       if (sub) {
-        this.tablesNested
-          .get(table)
+        this.tablesNested.get(table)
           .add(key);
       }
     }
 
     this.log.info({
-      tables: this.tablesCols.keys().join(', ')
+      tables: this.tablesCols.keys()
+        .join(', ')
     }, 'Discovered');
   }
 
@@ -84,7 +85,18 @@ class CHSync {
       const currTable = this.tablesCols.get(table);
 
       const {_options, ...customCols} = conf;
-      const schemaCols = Object.assign({}, base, customCols);
+
+      const schemaCols = Object.assign(
+        {},
+        base,
+        _options && _options.extend && tables[_options.extend],
+        customCols
+      );
+
+      if (_options && _options.extend) {
+        Object.assign(_options, schemaCols._options);
+        schemaCols._options = undefined;
+      }
 
       if (!exists) {
 
