@@ -24,16 +24,19 @@ writers:
       date: Date
       dateTime: DateTime
       timestamp: UInt64
+      channel: Enum8('' = 0, 'other' = 1, 'alcojs' = 5, 'webhook' = 6, 'pixel' = 7, 'r1' = 8 , 'r2' = 9, 'r3' = 10)
       projectId: UInt32
       name: String
 
-    event:
+    alcojs:
       default: events_v2
       activity: activity
       scroll: activity
     webhook:
       default: webhooks_v2
       test/test: wh_test_test
+    pixel:
+      default: events_v2
     tables:
       webhooks_v2:
         service: String

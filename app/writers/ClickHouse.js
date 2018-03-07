@@ -70,7 +70,7 @@ class ClickHouse {
           cols,
           nested
         });
-        throw new Error('Wrong table config');
+        throw new Error('wrong table config');
       }
 
       return flatObject(record, nested, cols);
@@ -88,20 +88,18 @@ class ClickHouse {
     this.casInit();
 
     await this.sync.sync();
-
-
     await this.client.init();
 
-    this.log.info('Ready');
+    this.log.info('started');
   }
 
   write(msg) {
 
-    const {time, type, ...rest} = msg;
+    const {time, ...rest} = msg;
 
     const key = msg.name.toLowerCase()
       .replace(/\s/g, '_');
-    const table = this.options[type][key] || this.options[type].default;
+    const table = this.options[rest.channel][key] || this.options[rest.channel].default;
 
     // date and time
     const dateString = time.toISOString()

@@ -84,19 +84,24 @@ class CHSync {
       const exists = this.tablesCols.has(table);
       const currTable = this.tablesCols.get(table);
 
-      const {_options, ...customCols} = conf;
+      let {_options, ...customCols} = conf;
+
+      // Inheritance
+      if (_options && _options.extend && tables[_options.extend]) {
+
+        const {_options:inhOptions, ...ihnCustomCols} = tables[_options.extend];
+
+        Object.assign({}, inhOptions, _options);
+        customCols = Object.assign({}, ihnCustomCols, customCols);
+      }
 
       const schemaCols = Object.assign(
         {},
         base,
-        _options && _options.extend && tables[_options.extend],
         customCols
       );
 
-      if (_options && _options.extend) {
-        Object.assign(_options, schemaCols._options);
-        schemaCols._options = undefined;
-      }
+
 
       if (!exists) {
 

@@ -16,7 +16,8 @@ const Joi = require('joi');
 
 const afs = Promise.promisifyAll(fs);
 const {timeMark, timeDuration} = require('./ServiceStat');
-const alcoRequestSchema = require('./schema/alcoRequest');
+const AlcoJSSchema = require('./schema/alcojs');
+const PixelSchema = require('./schema/pixel');
 
 const asyncUtil = fn =>
   (req, res, next, ...args) =>
@@ -98,22 +99,44 @@ class TrackerHttpApi {
 
     });
 
-    this.app.get('/track', (req, res) => {
+    this.app.get('/img', asyncUtil(async (req, res) => {
 
       this.stat.mark('trackGif');
-
-      this.log.debug({event: 'unknown'}, 'Tracking via gif');
-
       res.type('gif').send(emptyGif);
 
-    });
+      const meta = {
+        channel: 'pixel',
+        uid: req.uid,
+        ip: req.ip,
+        userAgent: req.headers['user-agent']
+      };
+
+      try {
+
+        this.log.debug('Tracking using pixel');
+        // if (req.query['b64']){
+        const raw = Buffer.from(req.query['b64'], 'base64').toString();
+        const msg = Object.assign({}, JSON.parse(raw), meta);
+        // }
+
+        const clean = await Joi.validate(msg, PixelSchema);
+
+        await this.trackerService.toStore(clean);
+
+        this.stat.histPush('trackGifHandled', timeDuration(req.startAt));
+
+      } catch (error) {
+        this.log.error(error)
+      }
+
+    }));
 
     this.app.post('/track', asyncUtil(async (req, res) => {
 
       this.stat.mark('trackPost');
 
       const meta = {
-        type: 'event',
+        channel: 'alcojs',
         uid: req.uid,
         ip: req.ip,
         userAgent: req.headers['user-agent']
@@ -129,14 +152,18 @@ class TrackerHttpApi {
 
       try {
 
-        const validated = await alcoRequestSchema.validate(msg);
+        const clean = await AlcoJSSchema.validate(msg);
 
-        this.trackerService.toStore(validated).then(() => {
-          this.stat.histPush('trackPostHandled', timeDuration(req.startAt));
-        });
+        await this.trackerService.toStore(clean);
+
+        this.stat.histPush('trackPostHandled', timeDuration(req.startAt));
+
 
       } catch (err) {
+
+        this.stat.mark('err-validation-alcojs');
         this.log.error(msg, err.message);
+
       }
 
       this.stat.histPush('trackPostResponse', timeDuration(req.startAt));
@@ -164,7 +191,7 @@ class TrackerHttpApi {
       this.stat.mark('webhook');
 
       const msg = {
-        type: 'webhook',
+        channel: 'webhook',
         name: `${req.params.service}/${req.params.action}`,
         projectId: req.params.projectId,
         service: req.params.service,
@@ -173,7 +200,7 @@ class TrackerHttpApi {
         remote_ip: req.ip
       };
 
-      res.json({result: 'queued', msg});
+      res.json({result: 'queued'});
 
       this.trackerService.toStore(msg).then(() => {
         this.stat.histPush('webhookHandled', timeDuration(req.startAt));

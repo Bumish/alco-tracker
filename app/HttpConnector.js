@@ -44,11 +44,11 @@ class HTTPConnector {
     const requestKey = createHash(Object.values(params).join(''));
     const cached = this.cache.get(requestKey);
 
-    this.log.debug(`Querying ${url} cache: ${Boolean(cached)}`);
-
     if (cached) {
       return JSON.parse(cached);
     }
+
+    this.log.debug(`Querying ${url} cache: ${Boolean(cached)}`);
 
     return got(url, Object.assign({}, this.gotOptions, {query: params})).then(
       response => {

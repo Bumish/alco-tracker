@@ -58,15 +58,12 @@ class MixPanel {
 
   write(msg) {
 
-    const {type, time, ...rest} = msg;
-
-    if (rest.uid) {
-      rest.distinct_id = rest.uid;
+    if (msg.uid) {
+      msg.distinct_id = rest.uid;
     }
 
-    rest.time = Math.round(time.getTime() / 1000);
-
-    this.queue.push(flatten(rest));
+    msg.time = Math.round(time.getTime() / 1000);
+    this.queue.push(flatten(msg));
 
   }
 }

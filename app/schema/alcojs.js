@@ -3,7 +3,7 @@
 const Joi = require('joi');
 
 module.exports = Joi.object().keys({
-  type: Joi.string().allow('event'),
+  channel: Joi.string().only(['alcojs']).required(),
   id: Joi.string().regex(/^[0-9]+$/),
   userAgent: Joi.string().required(),         // ch+
   ip: Joi.string().required(),                // ch+
