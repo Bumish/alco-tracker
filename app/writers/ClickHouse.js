@@ -45,9 +45,10 @@ const flatObject = (child, nested, cols, path = [], separator = '_') => {
 
 class ClickHouse {
 
-  constructor(options, {log}) {
+  constructor(options, {log, stat}) {
 
     this.log = log.child({name: this.constructor.name});
+    this.stat = stat;
 
     this.options = Object.assign({
       enabled: false
@@ -56,7 +57,7 @@ class ClickHouse {
 
     const connOptions = dsnParse(this.options.dsn);
 
-    const client = this.client = new CHClient(connOptions, {log});
+    const client = this.client = new CHClient(connOptions, {log, stat});
     this.sync = new CHSync(options, {
       log,
       client
@@ -110,9 +111,7 @@ class ClickHouse {
 
     const row = this.formatter(table, rest);
 
-    this.client
-      .getWriter(table)
-      .push(row);
+    this.client.getWriter(table).push(row);
 
   }
 

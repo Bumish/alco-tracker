@@ -27,14 +27,14 @@ const asyncUtil = fn =>
 
 class TrackerHttpApi {
 
-  constructor(options, services) {
+  constructor(options, {trackerService, stat, log}) {
 
     const httpDefaults = {
       port: 8080,
       uidParam: 'uid'
     };
 
-    this.log = services.log;
+    this.log = log.child({name: this.constructor.name});
     this.options = options;
     this.options.http = Object.assign({}, httpDefaults, options.http);
     this.cookieMaxAge = this.options.http.cookieMaxAge;
@@ -48,8 +48,6 @@ class TrackerHttpApi {
       cookieMaxAge,
       trustProxy
     }, 'Starting HTTP api');
-
-    const {trackerService, stat} = services;
 
     // App stats
     this.stat = stat;

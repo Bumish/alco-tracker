@@ -2,6 +2,7 @@
 
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
+const {timeMark, timeDuration} = require('../ServiceStat');
 const got = require('got');
 
 const CHBufferWriter = require('./CHBufferWriter');
@@ -10,25 +11,35 @@ const CHBufferWriter = require('./CHBufferWriter');
  * Base ClickHouse lib.
  * Used for raw data queries and modifications
  * Also provide object-push style writing
+ * @property {ServiceStat} stat Internal stat service
  */
 class CHClient {
 
   /**
+   *
    * @param options
    * @param log
+   * @param services
    */
-  constructor(options, {log}) {
+  constructor(options, {log, ...services}) {
 
     this.log = log.child({name: this.constructor.name});
     this.log.info({url: this.url}, 'Starting ClickHouse client');
 
+    // Binding services
+    Object.assign(this, services);
+
     this.options = Object.assign({
-      uploadInterval: 5,
-      enabled: false
+      uploadInterval: 5000,
+      enabled: false,
     }, options);
 
+    // GOT http options
     this.httpOptions = {
-      timeout: 5000
+      timeout: 10000,
+      retries: 1,
+      followRedirect: false,
+
     };
 
     const {protocol, hostname, port, db} = this.options;
@@ -37,28 +48,26 @@ class CHClient {
 
     this.writers = new Map();
 
+    /**
+     * Returns writer for table
+     * @param table
+     * @return {CHBufferWriter}
+     */
+    this.getWriter = (table) => {
+      if (!this.writers.has(table)) {
+        this.writers.set(table, new CHBufferWriter({table}, {log, ...services}));
+      }
+      return this.writers.get(table);
+    }
   }
 
   init() {
 
     setInterval(
       () => this.flushWriters(),
-      this.options.uploadInterval * 1000);
+      this.options.uploadInterval);
 
     this.log.info('Started');
-
-  }
-
-  /**
-   * Returns writer for table
-   * @param table
-   * @return {CHBufferWriter}
-   */
-  getWriter(table) {
-    if (!this.writers.has(table)) {
-      this.writers.set(table, new CHBufferWriter({table}, {log: this.log}));
-    }
-    return this.writers.get(table);
   }
 
   /**
@@ -160,18 +169,24 @@ class CHClient {
       query: `INSERT INTO ${table} FORMAT JSONEachRow`
     };
 
+
+    this.stat.mark(`ch-upload-${table}`);
     this.log.debug(queryParams, 'Query');
+
+    const startAt = timeMark();
 
     fs.createReadStream(fn)
       .pipe(got.stream.post(this.url, Object.assign({}, this.httpOptions, {query: queryParams})))
-      .on('error', (err, body, res) => {
+      .on('error', (err) => {
+
+        this.stat.histPush(`ch-upload-${table}-error`, timeDuration(startAt));
         this.log.error(err, 'Upload error');
       })
       .on('response', res => {
         this.log.debug(`Upload result: ${res.statusCode} ${res.statusMessage}`);
         if (res.statusCode === 200) {
-          fs.unlink(fn, () => {
-          });
+          this.stat.histPush(`ch-upload-${table}`, timeDuration(startAt));
+          fs.unlink(fn, () => {});
         }
         else {
           this.log.warn({

@@ -1,24 +1,24 @@
 'use strict';
 
 const simpleflake = require('simpleflake');
-const enrichers = require('./enrichers');
-const writers = require('./writers');
+const Enrichers = require('./enrichers');
+const Writers = require('./writers');
 
 class TrackerService {
 
-  constructor(config, {storage, log}) {
+  constructor(config, {storage, log, stat}) {
 
-    this.log = log.child({mod: 'TrackerService'});
+    this.log = log.child({name: this.constructor.name});
 
     this.config = config;
     this.storage = storage;
 
-    this.enrichers = Object.keys(enrichers).map(k => {
-      return new enrichers[k](config.services[k], {log});
+    this.enrichers = Object.keys(Enrichers).map(k => {
+      return new Enrichers[k](config.services[k], {log});
     });
 
-    this.writers = Object.keys(writers).reduce((acc, k) => {
-      const w = new writers[k](config.writers[k], {log});
+    this.writers = Object.keys(Writers).reduce((acc, k) => {
+      const w = new Writers[k](config.writers[k], {log, stat});
       return acc.concat(w.configured ? [w] : []);
     },[]);
   }
