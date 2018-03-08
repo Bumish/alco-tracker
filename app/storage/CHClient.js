@@ -18,7 +18,6 @@ const CHBufferWriter = require('./CHBufferWriter');
 class CHClient {
 
   /**
-   *
    * @param options
    * @param log
    * @param services

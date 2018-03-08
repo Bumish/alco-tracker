@@ -30,7 +30,9 @@ const showAlterTable = (name, cols, table_options) => {
  */
 const newCols = (schemaCols, currentCols) => schemaCols.filter(col => currentCols.indexOf(col) < 0);
 
-
+/**
+ * @property {CHClient} client
+ */
 class CHSync {
 
   constructor(options, {log, client}) {
@@ -108,7 +110,7 @@ class CHSync {
         this.log.info(`Creating table ${table}`);
         const query = showCreateTable(table, schemaCols, _options);
 
-        await this.client.run(query);
+        await this.client.execute(query);
 
       } else {
 
@@ -132,7 +134,7 @@ class CHSync {
             _options
           );
 
-          await this.client.run(query);
+          await this.client.execute(query);
         }
       }
     }
