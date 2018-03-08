@@ -30,8 +30,8 @@ const handle = data => {
   const result = pick(data, 'success');
 
   if (data.isBot) {
+    result.isBot = 1;
     result.device = {
-      isBot: 1,
       type: 'bot',
       brand: data.producer && data.producer.name,
       model: data.bot && data.bot.name
