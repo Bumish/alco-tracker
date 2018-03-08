@@ -23,6 +23,10 @@ writers:
       default: events_v2
       activity: activity
       scroll: activity
+      form_submit: forms
+      field_change: forms
+      field_focus: forms
+      field_blug: forms
     webhook:
       default: webhooks_v2
       test/test: wh_test_test
@@ -131,7 +135,7 @@ writers:
         scroll_scroll: UInt16
         scroll_maxScroll: UInt16
         cf_locstor: Int16 DEFAULT -1
-        cf_addel: Int16 DEFAILT -1
+        cf_addel: Int16 DEFAULT -1
         cf_promise: Int16 DEFAULT -1
         cf_sbeacon: Int16 DEFAULT -1
         cf_atob: Int16 DEFAULT -1

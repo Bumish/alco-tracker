@@ -10,7 +10,6 @@ const boolToInt = (k, v) => (typeof v === 'boolean' ? Number(v) : v);
 class CHBufferWriter {
 
   /**
-   *
    * @param options
    * @param services
    */
@@ -24,6 +23,7 @@ class CHBufferWriter {
     this.log = log.child({group: 'CHBufferWriter', obj:this.fileName});
 
     this.buffers = [];
+    this.offset = 0;
     this.fileReady = false;
     this.writing = false;
     this.objectName = `${this.folder}/${this.table}-${this.fileName}`;
@@ -41,6 +41,21 @@ class CHBufferWriter {
 
       });
   }
+
+
+  get table(){
+    return this.options.table;
+  }
+
+
+  push(object) {
+    const chunk = new Buffer(JSON.stringify(object, boolToInt)+'\n');
+
+    this.fileReady
+      ? this.writeToFile(chunk)
+      : this.buffers.push(chunk);
+  }
+
 
   flushBuffer() {
 
@@ -73,16 +88,6 @@ class CHBufferWriter {
     });
   }
 
-
-  push(object) {
-    const chunk = new Buffer(JSON.stringify(object, boolToInt)+'\n');
-
-    this.fileReady
-      ? this.writeToFile(chunk)
-      : this.buffers.push(chunk);
-  }
-
-
   async close() {
 
     try {
@@ -109,11 +114,6 @@ class CHBufferWriter {
       throw e;
     }
   }
-
-  get table(){
-    return this.options.table;
-  }
-
 }
 
 
