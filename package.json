@@ -37,6 +37,7 @@
     "measured": "^1.1.0",
     "mixpanel": "^0.8.0",
     "node-cache": "^4.1.1",
+    "node-fetch": "^2.1.1",
     "pino": "^4.10.4",
     "simpleflake": "^1.0.1",
     "statsd-client": "^0.4.0",

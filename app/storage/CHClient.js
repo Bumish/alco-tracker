@@ -4,6 +4,8 @@ const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
 const {timeMark, timeDuration} = require('../ServiceStat');
 const got = require('got');
+const qs = require('querystring');
+const fetch = require('node-fetch');
 
 const CHBufferWriter = require('./CHBufferWriter');
 
@@ -31,17 +33,9 @@ class CHClient {
 
     this.options = Object.assign({
       uploadInterval: 5000,
+      httpTimeout: 5000,
       enabled: false
     }, options);
-
-    // GOT http options
-    this.uploadOptions = {
-      timeout: 10000,
-      retries: 1,
-      json: false,
-      throwHttpErrors: false,
-      followRedirect: false
-    };
 
     const {protocol, hostname, port, db} = this.options;
     this.db = db;
@@ -163,7 +157,7 @@ class CHClient {
           });
         })
         .catch(error => {
-          this.log.error(error, 'File close error')
+          this.log.error(error, 'File close error');
         });
     }
   }
@@ -173,6 +167,7 @@ class CHClient {
    */
   handleBuffer({table, filename, buffer}) {
 
+    // Skip if no data
     if (!buffer.byteLength) {
       return this.unlinkFile(filename);
     }
@@ -182,35 +177,46 @@ class CHClient {
       query: `INSERT INTO ${table} FORMAT JSONEachRow`
     };
 
+    const queryUrl = this.url + '/?' + qs.stringify(queryParams);
     this.stat.mark(`ch-upload-${table}`);
-    this.log.debug(queryParams, 'Query');
 
     const startAt = timeMark();
 
-    got.stream.post(this.url, Object.assign({}, this.uploadOptions, {
-      query: queryParams,
-      body: buffer
-    }))
-      .on('error', (error) => {
-        this.stat.histPush(`ch-upload-${table}-error`, timeDuration(startAt));
-        this.log.error(error, 'Error uploading to CH');
-      })
-      .on('response', res => {
-        if (res.statusCode === 200) {
+    (async () => {
+
+      try {
+
+        const res = await fetch(queryUrl, {
+          method: 'POST',
+          body: buffer
+        });
+        const body = await res.text();
+
+        if (res.ok) {
           this.stat.histPush(`ch-upload-${table}`, timeDuration(startAt));
-          this.log.debug(`Upload result: ${res.statusCode} ${res.statusMessage}`);
-          this.unlinkFile(filename).then(null);
+          return this.unlinkFile(filename)
+            .then(null);
         }
-        else {
-          console.log(res);
-          this.log.warn({
-            res: res,
-            code: res.statusCode
-          }, 'Wrong code');
-        }
-      });
+
+        this.log.error({
+          body: body,
+          code: res.status
+        }, 'Wrong code');
+
+      } catch (error) {
+
+        this.log.error(error, 'Error uploading to CH');
+      }
+
+      this.stat.histPush(`ch-upload-${table}-error`, timeDuration(startAt));
+
+    })();
   }
 
+  /**
+   * Remove uploaded file
+   * @param filename
+   */
   unlinkFile(filename) {
     return fs.unlinkAsync(filename)
       .then(() => {
