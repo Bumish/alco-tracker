@@ -38,6 +38,8 @@ class CHClient {
     this.uploadOptions = {
       timeout: 10000,
       retries: 1,
+      json: false,
+      throwHttpErrors: false,
       followRedirect: false
     };
 
