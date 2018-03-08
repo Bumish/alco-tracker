@@ -191,12 +191,9 @@ class CHClient {
       query: queryParams,
       body: buffer
     }))
-      .on('error', (error, body, response) => {
+      .on('error', (error) => {
         this.stat.histPush(`ch-upload-${table}-error`, timeDuration(startAt));
-        this.log.warn({
-          body: response.body,
-          code: response.statusCode
-        }, 'Error uploading to CH');
+        this.log.error(error, 'Error uploading to CH');
       })
       .on('response', res => {
         if (res.statusCode === 200) {
@@ -205,6 +202,7 @@ class CHClient {
           this.log.debug(`Upload result: ${res.statusCode} ${res.statusMessage}`);
         }
         else {
+          console.log(res.body);
           this.log.warn({
             body: res.body,
             code: res.statusCode
