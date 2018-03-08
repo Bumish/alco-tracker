@@ -119,11 +119,9 @@ class TrackerHttpApi {
 
       try {
 
-        // if (req.query['b64']){
         const raw = Buffer.from(req.query['b64'], 'base64')
           .toString();
         const msg = Object.assign({}, JSON.parse(raw), meta);
-        // }
 
         if (msg['error']) {
           this.log.warn(msg, 'Tracking using pixel');

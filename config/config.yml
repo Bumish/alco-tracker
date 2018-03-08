@@ -23,10 +23,6 @@ writers:
       default: events_v2
       activity: activity
       scroll: activity
-      form_submit: forms
-      field_change: forms
-      field_focus: forms
-      field_blug: forms
     webhook:
       default: webhooks_v2
       test/test: wh_test_test
