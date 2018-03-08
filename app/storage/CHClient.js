@@ -192,7 +192,7 @@ class CHClient {
       .on('error', (error, body, response) => {
         this.stat.histPush(`ch-upload-${table}-error`, timeDuration(startAt));
         this.log.warn({
-          body: body,
+          body: response.body,
           code: response.statusCode
         }, 'Error uploading to CH');
       })
