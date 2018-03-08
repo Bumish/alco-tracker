@@ -198,13 +198,13 @@ class CHClient {
       .on('response', res => {
         if (res.statusCode === 200) {
           this.stat.histPush(`ch-upload-${table}`, timeDuration(startAt));
-          this.unlinkFile(filename).then(null);
           this.log.debug(`Upload result: ${res.statusCode} ${res.statusMessage}`);
+          this.unlinkFile(filename).then(null);
         }
         else {
-          console.log(res.body);
+          console.log(res);
           this.log.warn({
-            body: res.body,
+            res: res,
             code: res.statusCode
           }, 'Wrong code');
         }

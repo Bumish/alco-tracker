@@ -29,6 +29,7 @@
     "eslint-config-google": "^0.9.1",
     "event-stream": "^3.3.4",
     "express": "^4.16.2",
+    "get-stream": "^3.0.0",
     "got": "^8.0.1",
     "joi": "^13.0.2",
     "js-yaml": "^3.10.0",
