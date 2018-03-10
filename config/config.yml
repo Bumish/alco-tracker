@@ -45,7 +45,7 @@ writers:
         data.key: Array(String)
         data.value: Array(String)
         _options:
-          engine: MergeTree(date, (intHash32(sipHash64(service)), intHash32(sipHash64(action)), date), 8192)
+          engine: MergeTree(date, (service, action, date), 8192)
       events_v2: &events
         uid: UInt64
         ip: String
@@ -127,7 +127,7 @@ writers:
         data.value: Array(String)
         scroll_docHeight: UInt16
         scroll_clientHeight: UInt16
-        scroll_topOffset: UInt16
+        scroll_topOffset: Int32 # can be ne
         scroll_scroll: UInt16
         scroll_maxScroll: UInt16
         cf_locstor: Int16 DEFAULT -1

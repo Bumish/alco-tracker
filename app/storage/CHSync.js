@@ -93,7 +93,9 @@ class CHSync {
 
         const {_options:inhOptions, ...ihnCustomCols} = tables[_options.extend];
 
-        Object.assign({}, inhOptions, _options);
+
+
+        _options = Object.assign({}, inhOptions, _options);
         customCols = Object.assign({}, ihnCustomCols, customCols);
       }
 
