@@ -32,7 +32,7 @@ module.exports = Joi.object().keys({
   }).required(),                              // O
   client: Joi.object().keys({                 // O
     platform: Joi.string().required(),        // ch+
-    product: Joi.string().required(),         // ch+
+    product: Joi.string().optional().allow().strip(),// к хуям, все равно ничего не дает
     tz: Joi.string().allow('').required(),    // ch+
     tzOffset: Joi.number().integer().required(),// ch+
     ts: Joi.number().integer().required()     // ch+
@@ -61,7 +61,7 @@ module.exports = Joi.object().keys({
     clientHeight: Joi.number().integer().required(),// ch+
     topOffset: Joi.number().integer().required(),// ch+
     scroll: Joi.number().integer().required(),// ch+
-    maxScroll: Joi.number().integer().required(),// ch+
+    maxScroll: Joi.number().integer().min(0).required(),// ch+
     src: Joi.any().optional().strip()         // temp
   }).default({}).optional(),                              // O
   perf: Joi.object().keys({                   // Och+
