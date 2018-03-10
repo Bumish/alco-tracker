@@ -38,11 +38,11 @@ module.exports = Joi.object().keys({
     ts: Joi.number().integer().required()     // ch+
   }).required(),                              // O
   cf: Joi.object().keys({                     // Och+ (client features)
-    locstor: Joi.boolean().required(),        // ch+sub
-    addel: Joi.boolean().required(),          // ch+sub
-    promise: Joi.boolean().required(),        // ch+sub
-    sbeacon: Joi.boolean().required(),        // ch+sub
-    atob: Joi.boolean().required(),           // ch+sub
+    locstor: Joi.boolean().optional(),        // ch+sub
+    addel: Joi.boolean().optional(),          // ch+sub
+    promise: Joi.boolean().optional(),        // ch+sub
+    sbeacon: Joi.boolean().optional(),        // ch+sub
+    atob: Joi.boolean().optional(),           // ch+sub
     wpush: Joi.boolean().optional()           // ch+sub
   }).options({stripUnknown: true}).optional(),                              // O
   data: Joi.object().keys({}).unknown(true).required(),// Och+
@@ -54,26 +54,35 @@ module.exports = Joi.object().keys({
   page: Joi.object().keys({                   // O
     url: Joi.string().uri().required(),   // ch+
     referrer: Joi.string().uri().allow('').required(),// ch+
-    title: Joi.string().allow('').required() // ch+
-  }).options({stripUnknown: true}).required(),                              // O
-  scroll: Joi.object().keys({                 // O
-    docHeight: Joi.number().integer().required(),// ch+
-    clientHeight: Joi.number().integer().required(),// ch+
-    topOffset: Joi.number().integer().required(),// ch+
-    scroll: Joi.number().integer().required(),// ch+
-    maxScroll: Joi.number().integer().min(0).required(),// ch+
+    title: Joi.string().allow('').required(),
+    query: Joi.object().keys({
+      utm_source: Joi.string().allow('').optional(),
+      utm_campaign: Joi.string().allow('').optional(),
+      utm_medium: Joi.string().allow('').optional(),
+      utm_content: Joi.string().allow('').optional(),
+      utm_term: Joi.string().allow('').optional(),
+      gclid: Joi.string().allow('').optional(),
+      yclid: Joi.string().allow('').optional(),
+    }).default({}).unknown(true).required(),
+  }).options({stripUnknown: true}).required(),
+  scroll: Joi.object().keys({
+    docHeight: Joi.number().integer().optional(),// ch+
+    clientHeight: Joi.number().integer().optional(),// ch+
+    topOffset: Joi.number().integer().optional(),// ch+
+    scroll: Joi.number().integer().optional(),// ch+
+    maxScroll: Joi.number().integer().min(0).optional(),// ch+
     src: Joi.any().optional().strip()         // temp
   }).default({}).optional(),                              // O
   perf: Joi.object().keys({                   // Och+
-    ce: Joi.number().integer().required(),    // ch+sub
-    cs: Joi.number().integer().required(),    // ch+sub
-    dc: Joi.number().integer().required(),    // ch+sub
-    di: Joi.number().integer().required(),    // ch+sub
-    dl: Joi.number().integer().required(),    // ch+sub
-    rqs: Joi.number().integer().required(),   // ch+sub
-    rse: Joi.number().integer().required(),   // ch+sub
-    rss: Joi.number().integer().required(),   // ch+sub
-    scs: Joi.number().integer().required()   // ch+sub
+    ce: Joi.number().integer().optional(),    // ch+sub
+    cs: Joi.number().integer().optional(),    // ch+sub
+    dc: Joi.number().integer().optional(),    // ch+sub
+    di: Joi.number().integer().optional(),    // ch+sub
+    dl: Joi.number().integer().optional(),    // ch+sub
+    rqs: Joi.number().integer().optional(),   // ch+sub
+    rse: Joi.number().integer().optional(),   // ch+sub
+    rss: Joi.number().integer().optional(),   // ch+sub
+    scs: Joi.number().integer().optional()   // ch+sub
   }).optional().default({}),                  // O
   session: Joi.object().keys({                // O
     eventNum: Joi.number().integer(),         // ch+
@@ -97,14 +106,3 @@ module.exports = Joi.object().keys({
   }).required().unknown(true)                // ch+
 }).rename('library', 'lib', {ignoreUndefined:true});
 
-// === to rename (nested):
-// session_marks
-// user_traits
-// data
-
-// === Приведение типаов и чистка ключей и значений (в строку)
-// user_traits
-// session_marks
-//
-
-// .options({allowUnknown: true})
