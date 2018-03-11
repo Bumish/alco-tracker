@@ -55,15 +55,7 @@ module.exports = Joi.object().keys({
     url: Joi.string().uri().required(),   // ch+
     referrer: Joi.string().uri().allow('').required(),// ch+
     title: Joi.string().allow('').required(),
-    query: Joi.object().keys({
-      utm_source: Joi.string().allow('').optional(),
-      utm_campaign: Joi.string().allow('').optional(),
-      utm_medium: Joi.string().allow('').optional(),
-      utm_content: Joi.string().allow('').optional(),
-      utm_term: Joi.string().allow('').optional(),
-      gclid: Joi.string().allow('').optional(),
-      yclid: Joi.string().allow('').optional(),
-    }).default({}).unknown(true).optional(),
+    query: Joi.any().strip() // query не приходит с фронта, обрабатывается на сервере в энричерах
   }).options({stripUnknown: true}).required(),
   scroll: Joi.object().keys({
     docHeight: Joi.number().integer().optional(),// ch+
