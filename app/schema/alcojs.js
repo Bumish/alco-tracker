@@ -52,7 +52,7 @@ module.exports = Joi.object().keys({
     snippet: Joi.number().integer().required()// ch+
   }).required(),                              // O
   page: Joi.object().keys({                   // O
-    url: Joi.string().uri().required(),   // ch+
+    url: Joi.string().regex(/(\w+)\:\/\/\w+((\:\d+)?\/\S*)?/).required(),   // ch+
     referrer: Joi.string().uri().allow('').required(),// ch+
     title: Joi.string().allow('').required(),
     query: Joi.any().strip() // query не приходит с фронта, обрабатывается на сервере в энричерах
