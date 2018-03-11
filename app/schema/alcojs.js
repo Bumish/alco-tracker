@@ -63,7 +63,7 @@ module.exports = Joi.object().keys({
       utm_term: Joi.string().allow('').optional(),
       gclid: Joi.string().allow('').optional(),
       yclid: Joi.string().allow('').optional(),
-    }).default({}).unknown(true).required(),
+    }).default({}).unknown(true).optional(),
   }).options({stripUnknown: true}).required(),
   scroll: Joi.object().keys({
     docHeight: Joi.number().integer().optional(),// ch+
