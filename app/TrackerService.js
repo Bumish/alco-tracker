@@ -13,19 +13,26 @@ class TrackerService {
     this.config = config;
     this.storage = storage;
 
-    this.enrichers = Object.keys(Enrichers).map(k => {
-      return new Enrichers[k](config.services[k], {log});
-    });
+    this.enrichers = Object.keys(Enrichers)
+      .map(k => {
+        return new Enrichers[k](config.services[k], {log});
+      });
 
-    this.writers = Object.keys(Writers).reduce((acc, k) => {
-      const w = new Writers[k](config.writers[k], {log, stat});
-      return acc.concat(w.configured ? [w] : []);
-    },[]);
+    this.writers = Object.keys(Writers)
+      .reduce((acc, k) => {
+        const w = new Writers[k](config.writers[k], {
+          log,
+          stat
+        });
+        return acc.concat(w.configured ? [w] : []);
+      }, []);
 
     setInterval(() => {
       const currentStat = stat.getStat();
-      this.log.info(currentStat.counters)
-    },3e5)
+      this.log.info('Stat:' + Object.keys(currentStat.counters)
+        .map(c => ` ${c}: ${currentStat.counters[c].count}`)
+        .join(';'));
+    }, 3e5);
 
   }
 
@@ -52,22 +59,26 @@ class TrackerService {
     msg.id = this.generateEventId();
     msg.time = new Date();
 
-    await this.enrich(msg).then(msg => {
-      this.writers.map(w => {
-        w.write(Object.assign({}, msg));
+    await this.enrich(msg)
+      .then(msg => {
+        this.writers.map(w => {
+          w.write(Object.assign({}, msg));
+        });
+      })
+      .catch(e => {
+        this.log.error(e);
       });
-    }).catch(e => {
-      this.log.error(e);
-    });
 
   }
 
   generateEventId() {
-    return simpleflake().toString('base10');
+    return simpleflake()
+      .toString('base10');
   }
 
   generateUid() {
-    return simpleflake().toString('base10');
+    return simpleflake()
+      .toString('base10');
   }
 }
 
