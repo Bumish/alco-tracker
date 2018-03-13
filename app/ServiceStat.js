@@ -49,7 +49,7 @@ class ServiceStat {
 
   getStat() {
     const stat = {
-      counter: this.counter.toJSON()
+      counters: this.counter.toJSON()
     };
     for (const name of this.histsList()) {
       stat[`hist.${name}`] = this.getHist(name).toJSON();
