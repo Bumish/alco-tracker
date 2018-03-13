@@ -31,7 +31,7 @@ module.exports = Joi.object().keys({
     }).required()                            // O
   }).required(),                              // O
   client: Joi.object().keys({                 // O
-    platform: Joi.string().required(),        // ch+
+    platform: Joi.string().optional().strip(),        // ch+
     product: Joi.string().optional().allow().strip(),// к хуям, все равно ничего не дает
     tz: Joi.string().allow('').required(),    // ch+
     tzOffset: Joi.number().integer().required(),// ch+
