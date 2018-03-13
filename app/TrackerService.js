@@ -21,6 +21,12 @@ class TrackerService {
       const w = new Writers[k](config.writers[k], {log, stat});
       return acc.concat(w.configured ? [w] : []);
     },[]);
+
+    setInterval(() => {
+      const stat = stat.getStat();
+      this.log.info(stat.counters)
+    },3e5)
+
   }
 
   async init() {
