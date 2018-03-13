@@ -144,9 +144,9 @@ class CHClient {
 
     const tables = [...this.writers.keys()].sort();
     const delay = Math.round(this.options.uploadInterval / tables.length);
+    let i = 0;
 
-    for (const i in tables) {
-      const table = tables[i];
+    for (const table of tables) {
 
       setTimeout(() => {
         const writer = this.writers.get(table);
@@ -164,7 +164,7 @@ class CHClient {
           .catch(error => {
             this.log.error(error, 'File close error');
           });
-      }, i + delay);
+      }, delay * i++);
     }
   }
 
