@@ -23,8 +23,8 @@ class TrackerService {
     },[]);
 
     setInterval(() => {
-      const stat = stat.getStat();
-      this.log.info(stat.counters)
+      const currentStat = stat.getStat();
+      this.log.info(currentStat.counters)
     },3e5)
 
   }
