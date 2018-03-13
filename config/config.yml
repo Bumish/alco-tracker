@@ -1,11 +1,12 @@
 http:
-  port: <%= env.PORT || '8080' %>
   host: <%= env.HOST || '0.0.0.0' %>
+  port: <%= env.PORT || '8080' %>
   uidParam: uid
   cookieMaxAge: <%= 2 * 365 * 24 * 60 * 60 %>
   trustProxy:
     - '172.16.0.0/16'
     - '127.0.0.1'
+ws: {}
 writers:
   mixpanel:
     enabled: true
@@ -16,8 +17,7 @@ writers:
     enabled: true
     dsn: <%= env.CH_DSN %>
     uploadInterval: 2
-    sync:
-      skip: migrations
+    sync: true
     # data distribution
     alcojs:
       default: events_v2

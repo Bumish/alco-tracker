@@ -36,8 +36,9 @@ class LocalConfig {
     if (!fs.existsSync(this.serviceConfigFn)) {
       return console.error('config not found');
     }
-
+    // Custom config
     const custom = this.customConfig();
+    // Main config
     const main = this.loadConfig(this.serviceConfigFn);
 
     return mergeDeep(main, custom);

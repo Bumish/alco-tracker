@@ -6,6 +6,7 @@ const {timeMark, timeDuration} = require('../ServiceStat');
 const got = require('got');
 const qs = require('querystring');
 const fetch = require('node-fetch');
+const lazy = require('lazy.js');
 
 const CHBufferWriter = require('./CHBufferWriter');
 
@@ -129,7 +130,7 @@ class CHClient {
    * Returns DB structure
    * @return Promise<Buffer>
    */
-  tables_columns() {
+  tablesColumns() {
     return this.query(`SELECT table, name, type FROM system.columns WHERE database = '${this.db}' FORMAT JSON`)
       .then(result => JSON.parse(result.toString()))
       .then(parsed => parsed.data);
@@ -140,24 +141,30 @@ class CHClient {
    * Flushing writers
    */
   flushWriters() {
-    const tasks = [...this.writers.values()];
-    this.writers.clear();
 
-    for (const task of tasks) {
+    const tables = [...this.writers.keys()].sort();
+    const delay = Math.round(this.options.uploadInterval / tables.length);
 
-      this.log.debug(`uploding ${task.table}`);
+    for (const i in tables) {
+      const table = tables[i];
 
-      task.close()
-        .then(({table, filename, buffer}) => {
-          this.handleBuffer({
-            table,
-            filename,
-            buffer
+      setTimeout(() => {
+        const writer = this.writers.get(table);
+        this.writers.delete(table);
+        this.log.debug(`uploding ${table}`);
+
+        writer.close()
+          .then(({table, filename, buffer}) => {
+            this.handleBuffer({
+              table,
+              filename,
+              buffer
+            });
+          })
+          .catch(error => {
+            this.log.error(error, 'File close error');
           });
-        })
-        .catch(error => {
-          this.log.error(error, 'File close error');
-        });
+      }, i + delay);
     }
   }
 

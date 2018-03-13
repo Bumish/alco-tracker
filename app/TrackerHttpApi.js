@@ -14,10 +14,11 @@ const emptyGif = require('./functions/emptyGif');
 
 const Joi = require('joi');
 
-const afs = Promise.promisifyAll(fs);
 const {timeMark, timeDuration} = require('./ServiceStat');
 const AlcoJSSchema = require('./schema/alcojs');
 const PixelSchema = require('./schema/pixel');
+
+const readFileAsync = Promise.promisify(fs.readFile);
 
 const asyncUtil = fn =>
   (req, res, next, ...args) =>
@@ -153,10 +154,15 @@ class TrackerHttpApi {
       if (Object.keys(req.body).length === 0) {
         return this.log.info(meta, 'Empty PostData');
       }
-
       const msg = Object.assign({}, req.body, meta);
 
       res.json({result: 'queued'});
+
+
+      // Errors ans warns from client lib
+      if (msg.name === 'log'){
+        return this.log.warn(msg.args, 'Data from client lib');
+      }
 
       try {
 
@@ -241,13 +247,19 @@ class TrackerHttpApi {
 
   async start() {
 
+    const {host, port} = this.options.http;
     const fn = this.options.isProduction ? 'lib.js' : 'lib-dev.js';
-    console.log(`loading client library (${fn}).`);
-    this.lib = await afs.readFileAsync(path.join(__dirname, '..', 'alcojs', fn));
-    console.log(`loaded. size: ${this.lib.length}`);
-    console.log('starting http api on port:', this.options.http.port);
-    console.log(`to access stats: /stat?key=${this.stat.getSecret()}`);
-    this.app.listen(this.options.http.port, this.options.http.host);
+
+    this.lib = await readFileAsync(path.join(__dirname, '..', 'alcojs', fn));
+
+    this.app.listen(port, host);
+
+    this.log.info({
+      lib: fn,
+      libsize: this.lib.length,
+      host,
+      port
+    }, 'started');
 
   }
 }

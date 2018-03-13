@@ -13,6 +13,7 @@
   ],
   "rules": {
     "quotes": [ 1, "single" ],
+    "brace-style": ["error", "stroustrup", { "allowSingleLine": true }],
     "strict": [2, "global"],
     "max-len": [2, 120, 4],
     "arrow-body-style": [2, "as-needed"],

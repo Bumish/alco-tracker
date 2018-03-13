@@ -55,7 +55,7 @@ class CHSync {
     this.tablesCols = DefaultDict(Object);
     this.tablesNested = DefaultDict(Set);
 
-    const list = await this.client.tables_columns();
+    const list = await this.client.tablesColumns();
 
     for (const row of list) {
       const {table, name, type} = row;
@@ -75,11 +75,19 @@ class CHSync {
 
   async sync() {
 
-    this.log.info('Syncing...');
 
     const {tables, base} = this.options;
 
+    this.log.info('initial discover...');
+
     await this.discover();
+
+
+    if (base.sync !== true){
+      return this.log.info('disabled. skipping')
+    }
+
+
 
     for (const [table, conf] of Object.entries(tables)) {
 
