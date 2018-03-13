@@ -76,18 +76,15 @@ class CHSync {
   async sync() {
 
 
-    const {tables, base} = this.options;
+    const {tables, base, sync} = this.options;
 
     this.log.info('initial discover...');
 
     await this.discover();
 
-
-    if (base.sync !== true){
+    if (sync !== true){
       return this.log.info('disabled. skipping')
     }
-
-
 
     for (const [table, conf] of Object.entries(tables)) {
 
