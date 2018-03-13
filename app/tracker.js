@@ -6,7 +6,8 @@ require('dotenv')
   .config();
 
 const TrackerService = require('./TrackerService');
-const TrackerWebApi = require('./TrackerWebApi');
+const TrackerHttpApi = require('./TrackerHttpApi');
+const TrackerWsApi = require('./TrackerWsApi');
 const ServiceStat = require('./ServiceStat');
 const LocalConfig = require('./config/LocalConfig');
 const pino = require('pino');
@@ -31,15 +32,20 @@ services.stat = new ServiceStat(config, services);
   try {
     log.info('Starting Alcolytics tracker');
 
-    // Services
     services.trackerService = new TrackerService(config, services);
-    services.trackerWebApi = new TrackerWebApi(config, services);
+
+    services.trackerHttpApi = new TrackerHttpApi(config, services);
+
+    services.trackerWsApi = new TrackerWsApi(config, services);
 
     // Initializing main service
     await services.trackerService.init();
 
     // Starting HTTP API
-    await services.trackerWebApi.start();
+    await services.trackerHttpApi.start();
+
+
+    await services.trackerWsApi.init();
 
     log.info('Alcolytics ready');
 

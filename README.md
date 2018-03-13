@@ -12,7 +12,7 @@ a new server deployment system.
 систему развертывания нового сервера.
 [Подробнее](https://alco.readme.io/docs) 
 
-![Alcolytics sheme](https://raw.githubusercontent.com/alcolytics/alco-tracker/master/docs/alco-scheme.png)
+![Alcolytics sheme](https://alcolytics.ru/media/alco-scheme.png)
 
 ## About AlcoTracker
 
