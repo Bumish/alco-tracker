@@ -54,6 +54,10 @@ class PageEnricher {
 
     try {
 
+      Object.keys(query)
+        .forEach(key => query[key] === '' ? undefined: query[key]);
+
+
       const data = msg.page;
 
       return await Joi.validate(
