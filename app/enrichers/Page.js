@@ -8,12 +8,12 @@ const Schema = Joi.object().keys({
 
   domain: Joi.string().required(),
   query: Joi.object().keys({
-    utm_source: Joi.string().optional(),
-    utm_campaign: Joi.string().optional(),
-    utm_medium: Joi.string().optional(),
-    utm_content: Joi.string().optional(),
-    utm_term: Joi.string().optional(),
-  }).unknown(true).pattern(/.*/, Joi.string()).default({}).required(),
+    utm_source: Joi.string().optional().allow(''),
+    utm_campaign: Joi.string().optional().allow(''),
+    utm_medium: Joi.string().optional().allow(''),
+    utm_content: Joi.string().optional().allow(''),
+    utm_term: Joi.string().optional().allow(''),
+  }).unknown(true).default({}).required(),
   proto: Joi.string().allow(['http', 'https', 'other']).required()
 
 });
