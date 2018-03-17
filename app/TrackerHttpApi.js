@@ -107,9 +107,10 @@ class TrackerHttpApi {
 
     this.app.get('/img', asyncUtil(async (req, res) => {
 
-      this.stat.mark('trackGif');
       res.type('gif')
         .send(emptyGif);
+
+      this.stat.mark('gif');
 
       const meta = {
         channel: 'pixel',
@@ -120,29 +121,39 @@ class TrackerHttpApi {
 
       try {
 
-        const raw = Buffer.from(req.query['b64'], 'base64')
+        const raw = Buffer
+          .from(req.query['b64'], 'base64')
           .toString();
+
         const msg = Object.assign({}, JSON.parse(raw), meta);
 
         if (msg['error']) {
+
           this.log.warn(msg, 'Tracking using pixel');
+          this.stat.mark('frontend.error')
+
+        } else {
+
+          const clean = await Joi.validate(msg, PixelSchema);
+          await this.trackerService.toStore(clean);
+          this.stat.histPush('img', timeDuration(req.startAt));
+
         }
 
-        const clean = await Joi.validate(msg, PixelSchema);
 
-        await this.trackerService.toStore(clean);
-
-        this.stat.histPush('trackGifHandled', timeDuration(req.startAt));
 
       } catch (error) {
+
+        this.stat.mark('error.img');
         this.log.error(error);
+
       }
 
     }));
 
     this.app.post('/track', asyncUtil(async (req, res) => {
 
-      this.stat.mark('trackPost');
+      this.stat.mark('track');
 
       const meta = {
         channel: 'alcojs',
@@ -160,31 +171,28 @@ class TrackerHttpApi {
 
 
       // Errors ans warns from client lib
-      if (msg.name === 'log'){
+      if (msg.name === 'log') {
         return this.log.warn(msg.args, 'Data from client lib');
       }
 
       try {
 
         const clean = await AlcoJSSchema.validate(msg);
-
         await this.trackerService.toStore(clean);
 
-        this.stat.histPush('trackPostHandled', timeDuration(req.startAt));
+        this.stat.histPush('handled.track', timeDuration(req.startAt));
 
 
       } catch (err) {
 
-        this.stat.mark('err-validation-alcojs');
+        this.stat.mark('error.track');
         this.log.error(msg, err.message);
 
       }
 
-      this.stat.histPush('trackPostResponse', timeDuration(req.startAt));
-
     }));
 
-    this.app.get('/lib.js', (req, res) => {
+    this.app.get('/lib.js', asyncUtil(async (req, res) => {
 
       this.stat.mark('lib');
       const clientConfig = {
@@ -196,11 +204,11 @@ class TrackerHttpApi {
       const cmd = new Buffer(`window.alco&&window.alco('configure',${JSON.stringify(clientConfig)});`);
       res.send(Buffer.concat([cmd, this.lib]));
 
-      this.stat.histPush('libResponse', timeDuration(req.startAt));
+      this.stat.histPush('handled.lib', timeDuration(req.startAt));
 
-    });
+    }));
 
-    this.app.all('/webhook/:projectId/:service/:action', (req, res) => {
+    this.app.all('/webhook/:projectId/:service/:action', asyncUtil(async (req, res) => {
 
       this.stat.mark('webhook');
 
@@ -214,14 +222,18 @@ class TrackerHttpApi {
         remote_ip: req.ip
       };
 
-      res.json({result: 'queued'});
+      try {
 
-      this.trackerService.toStore(msg)
-        .then(() => {
-          this.stat.histPush('webhookHandled', timeDuration(req.startAt));
-        });
+        res.json({result: 'queued'});
 
-    });
+        await this.trackerService.toStore(msg);
+        this.stat.histPush('handled.webhook', timeDuration(req.startAt));
+
+      } catch (error) {
+        this.log.error(error, 'webhook err');
+        this.stat.histPush('error.webhook', timeDuration(req.startAt));
+      }
+    }));
 
     this.app.get('/stat', (req, res) => {
 
@@ -229,12 +241,11 @@ class TrackerHttpApi {
         ? this.stat.getStat()
         : {error: 'wrong secret'}
       );
-
     });
 
     this.app.use((err, req, res, next) => {
 
-      this.stat.mark('error');
+      this.stat.mark('error.middleware');
 
       console.error('Error middleware', err.message, err.stack);
       if (!res.headersSent) {
