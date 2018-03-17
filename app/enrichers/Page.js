@@ -55,7 +55,7 @@ class PageEnricher {
     try {
 
       Object.keys(query)
-        .forEach(key => query[key] === '' ? undefined: query[key]);
+        .forEach(key => query[key] === '' ? undefined: String(query[key]));
 
 
       const data = msg.page;
