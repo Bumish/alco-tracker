@@ -37,7 +37,14 @@ class CHClient {
       enabled: false
     }, options);
 
-    const {protocol, hostname, port, db} = this.options;
+    const {protocol, hostname, port, db, auth} = this.options;
+    const [user, password] = auth && auth.split(':') || [];
+
+    this.queryParams = {
+      user,
+      password,
+      database: db
+    };
     this.db = db;
     this.url = `${protocol}//${hostname}:${port}`;
 
@@ -70,24 +77,31 @@ class CHClient {
    * Execution data modification query
    * @param query
    */
-  execute(query) {
+  async execute(query) {
 
-    const queryParams = {
-      database: this.db
-    };
+    const queryUrl = this.url + '/?' + qs.stringify(this.queryParams);
+    let responseBody;
 
-    this.log.debug(Object.assign({query}, queryParams), 'Query');
+    try {
 
-    return got.post(
-      this.url, {
-        query: queryParams,
-        body: query
-      })
-      .then(res => res.body)
-      .catch(err => this.log.error({
-        err: `${err.statusCode}: ${err.statusMessage}`,
-        body: err.response.body
-      }, 'Error during executing query'));
+      const res = await fetch(queryUrl, {method: 'POST', body: query});
+      responseBody = await res.text();
+
+      if (res.ok) {
+        this.stat.mark('clickhouse.query.success');
+        return responseBody;
+      }
+
+    } catch (error) {
+      this.stat.mark('clickhouse.error.upload');
+      throw error;
+    }
+
+    this.stat.mark('clickhouse.error.upload');
+    throw new Error(`Wrong HTTP code from ClickHouse: ${responseBody}`);
+
+
+
   }
 
   /**
@@ -95,19 +109,31 @@ class CHClient {
    * @param query <string> SQL query
    * @return Promise<Buffer>
    */
-  query(query) {
+  async query(query) {
 
-    const params = {
-      database: this.db,
-      query
-    };
+    const queryUrl = this.url + '/?' + qs.stringify(Object.assign({}, this.queryParams, {query}));
+    let responseBody;
 
-    this.log.debug(params, 'Query');
+    try {
 
-    return got(this.url, {query: params})
-      .then(response => response.body)
-      .catch(
-        err => this.log.error(err, 'Error during querying data'));
+      const startAt = timeMark();
+
+      const res = await fetch(queryUrl);
+      responseBody = await res.text();
+
+      if (res.ok) {
+        this.stat.histPush(`clickhouse.query.success`, timeDuration(startAt));
+        return responseBody;
+      }
+
+    } catch (error) {
+      this.stat.mark('clickhouse.error.upload');
+      throw error;
+    }
+
+    this.stat.mark('clickhouse.error.upload');
+    throw new Error(`Wrong HTTP code from ClickHouse: ${responseBody}`);
+
   }
 
   /**
@@ -117,13 +143,7 @@ class CHClient {
    */
   querySream(query) {
 
-    const queryParams = {
-      database: this.db,
-      query
-    };
-
-    this.log.debug(queryParams, 'Query stream');
-    return got.stream(this.url, {query: queryParams});
+    throw new Error('Not implemented');
   }
 
   /**
@@ -178,13 +198,14 @@ class CHClient {
       return this.unlinkFile(filename);
     }
 
-    const queryParams = {
-      database: this.db,
-      query: `INSERT INTO ${table} FORMAT JSONEachRow`
-    };
-
-    const queryUrl = this.url + '/?' + qs.stringify(queryParams);
-    this.stat.mark(`ch-upload-${table}`);
+    const queryUrl = this.url + '/?' + qs.stringify(
+      Object.assign(
+        {},
+        this.queryParams,
+        {query: `INSERT INTO ${table} FORMAT JSONEachRow`}
+      )
+    );
+    this.stat.mark(`clickhouse.upload.try`);
 
     const startAt = timeMark();
 
@@ -199,7 +220,7 @@ class CHClient {
         const body = await res.text();
 
         if (res.ok) {
-          this.stat.histPush(`ch-upload-${table}`, timeDuration(startAt));
+          this.stat.histPush(`clickhouse.upload.success`, timeDuration(startAt));
           return this.unlinkFile(filename)
             .then(null);
         }
@@ -214,7 +235,7 @@ class CHClient {
         this.log.error(error, 'Error uploading to CH');
       }
 
-      this.stat.histPush(`ch-upload-${table}-error`, timeDuration(startAt));
+      this.stat.histPush(`clickhouse.error.upload`, timeDuration(startAt));
 
     })();
   }
