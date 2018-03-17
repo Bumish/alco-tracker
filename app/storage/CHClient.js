@@ -38,13 +38,16 @@ class CHClient {
     }, options);
 
     const {protocol, hostname, port, db, auth} = this.options;
-    const [user, password] = auth && auth.split(':') || [];
 
     this.queryParams = {
-      user,
-      password,
       database: db
     };
+    if (auth) {
+      const [user, password] = auth.split(':');
+      this.queryParams = {user, password, ...this.queryParams};
+    }
+
+
     this.db = db;
     this.url = `${protocol}//${hostname}:${port}`;
 
@@ -84,7 +87,10 @@ class CHClient {
 
     try {
 
-      const res = await fetch(queryUrl, {method: 'POST', body: query});
+      const res = await fetch(queryUrl, {
+        method: 'POST',
+        body: query
+      });
       responseBody = await res.text();
 
       if (res.ok) {
@@ -99,7 +105,6 @@ class CHClient {
 
     this.stat.mark('clickhouse.error.upload');
     throw new Error(`Wrong HTTP code from ClickHouse: ${responseBody}`);
-
 
 
   }
