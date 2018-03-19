@@ -18,125 +18,144 @@ function unzip(obj, keyFilter, valFilter) {
     }
   }
 
-  return {key, value};
+  return {
+    key,
+    value
+  };
 }
 
 
-const fields = new Set([
-  'date',
-  'dateTime',
-  'timestamp',
-  'id',
-  'projectId',
-  'name',
-  'uid',
-  'ip',
-  'userAgent',
-  'page_url',
-  'page_referrer',
-  'page_title',
-  'page_domain',
-  'page_proto',
-  'page_query_utm_source',
-  'page_query_utm_campaign',
-  'page_query_utm_medium',
-  'page_query_utm_content',
-  'page_query_utm_term',
-  'page_query.key',
-  'page_query.value',
-  'session_type',
-  'session_engine',
-  'session_num',
-  'session_hasMarks',
-  'session_pageNum',
-  'session_eventNum',
-  'session_marks_utm_source',
-  'session_marks_utm_campaign',
-  'session_marks_utm_medium',
-  'session_marks_utm_content',
-  'session_marks_utm_term',
-  'session_marks.key',
-  'session_marks.value',
-  'session_start',
-  'session_refHost',
-  'lib_name',
-  'lib_libver',
-  'lib_snippet',
-  'client_tz',
-  'client_ts',
-  'client_tzOffset',
-  'client_platform',
-  'client_product',
-  'browser_if',
-  'browser_wh_w',
-  'browser_wh_h',
-  'browser_sr_tot_w',
-  'browser_sr_tot_h',
-  'browser_sr_avail_w',
-  'browser_sr_avail_h',
-  'browser_sr_asp',
-  'browser_sr_oAngle',
-  'browser_sr_oType',
-  'sxg_country_iso',
-  'sxg_country_name_ru',
-  'sxg_country_name_en',
-  'sxg_region_iso',
-  'sxg_region_name_ru',
-  'sxg_region_name_en',
-  'sxg_city_id',
-  'sxg_city_name_ru',
-  'sxg_city_name_en',
-  'mdd_isBot',
-  'mdd_client_type',
-  'mdd_client_name',
-  'mdd_client_version',
-  'mdd_os_name',
-  'mdd_os_version',
-  'mdd_os_platform',
-  'mdd_device_type',
-  'mdd_device_brand',
-  'mdd_device_model',
-  'user_id',
-  'user_gaId',
-  'user_ymId',
-  'user_traits.key',
-  'user_traits.value',
-  'data.key',
-  'data.value',
-  'scroll_docHeight',
-  'scroll_clientHeight',
-  'scroll_topOffset',
-  'scroll_scroll',
-  'scroll_maxScroll',
-  'cf_locstor',
-  'cf_addel',
-  'cf_promise',
-  'cf_sbeacon',
-  'cf_atob',
-  'perf_ce',
-  'perf_cs',
-  'perf_dc',
-  'perf_di',
-  'perf_dl',
-  'perf_rqs',
-  'perf_rse',
-  'perf_rss',
-  'perf_scs'
-]);
+const cols = {
+  id: 'UInt64',
+  date: 'Date',
+  dateTime: 'DateTime',
+  timestamp: 'UInt64',
+  projectId: 'UInt32',
+  name: 'String',
+  uid: 'UInt64',
+  ip: 'String',
+  userAgent: 'String',
+  page_url: 'String',
+  page_referrer: 'String',
+  page_title: 'String',
+  page_domain: 'String',
+  page_proto: 'Enum8(\'\' = 0, \'http\' = 1, \'https\' = 2, \'other\' = 3)',
+  page_query_utm_source: 'String',
+  page_query_utm_campaign: 'String',
+  page_query_utm_medium: 'String',
+  page_query_utm_content: 'String',
+  page_query_utm_term: 'String',
+  'page_query.key': 'Array(String)',
+  'page_query.value': 'Array(String)',
+  session_type: 'String',
+  session_engine: 'String',
+  session_num: 'UInt16',
+  session_hasMarks: 'UInt8',
+  session_pageNum: 'UInt16',
+  session_eventNum: 'UInt16',
+  session_marks_utm_source: 'String',
+  session_marks_utm_campaign: 'String',
+  session_marks_utm_medium: 'String',
+  session_marks_utm_content: 'String',
+  session_marks_utm_term: 'String',
+  'session_marks.key': 'Array(String)',
+  'session_marks.value': 'Array(String)',
+  session_start: 'UInt64',
+  session_refHost: 'String',
+  lib_name: 'String',
+  lib_libver: 'UInt32',
+  lib_snippet: 'UInt32',
+  client_tz: 'String',
+  client_ts: 'UInt64',
+  client_tzOffset: 'Int32',
+  client_platform: 'String',
+  client_product: 'String',
+  browser_if: 'Array(UInt8)',
+  browser_wh_w: 'UInt16',
+  browser_wh_h: 'UInt16',
+  browser_sr_tot_w: 'UInt16',
+  browser_sr_tot_h: 'UInt16',
+  browser_sr_avail_w: 'UInt16',
+  browser_sr_avail_h: 'UInt16',
+  browser_sr_asp: 'UInt16',
+  browser_sr_oAngle: 'UInt16',
+  browser_sr_oType: 'String',
+  sxg_country_iso: 'String',
+  sxg_country_name_ru: 'String',
+  sxg_country_name_en: 'String',
+  sxg_region_iso: 'String',
+  sxg_region_name_ru: 'String',
+  sxg_region_name_en: 'String',
+  sxg_city_id: 'UInt32',
+  sxg_city_name_ru: 'String',
+  sxg_city_name_en: 'String',
+  mdd_isBot: 'Int8',
+  mdd_client_type: 'String',
+  mdd_client_name: 'String',
+  mdd_client_version: 'String',
+  mdd_os_name: 'String',
+  mdd_os_version: 'String',
+  mdd_os_platform: 'String',
+  mdd_device_type: 'String',
+  mdd_device_brand: 'String',
+  mdd_device_model: 'String',
+  user_id: 'String',
+  user_gaId: 'String',
+  user_ymId: 'String',
+  'user_traits.key': 'Array(String)',
+  'user_traits.value': 'Array(String)',
+  'data.key': 'Array(String)',
+  'data.value': 'Array(String)',
+  scroll_docHeight: 'UInt16',
+  scroll_clientHeight: 'UInt16',
+  scroll_topOffset: 'Int32',
+  scroll_scroll: 'UInt16',
+  scroll_maxScroll: 'UInt16',
+  cf_locstor: 'Int16',
+  cf_addel: 'Int16',
+  cf_promise: 'Int16',
+  cf_sbeacon: 'Int16',
+  cf_atob: 'Int16',
+  perf_ce: 'Int16',
+  perf_cs: 'Int16',
+  perf_dc: 'Int16',
+  perf_di: 'Int16',
+  perf_dl: 'Int16',
+  perf_rqs: 'Int16',
+  perf_rse: 'Int16',
+  perf_rss: 'Int16',
+  perf_scs: 'Int16',
+  huyvamtam: 'String',
+  huyvamtamitam: 'String',
+  page_query_gclid: 'String',
+  page_query_yclid: 'String',
+  session_marks_has_gclid: 'Int8',
+  session_marks_has_yclid: 'Int8',
+  cf_wpush: 'Int16',
+  channel: 'Enum8(\'\' = 0, \'other\' = 1, \'alcojs\' = 5, \'webhook\' = 6, \'pixel\' = 7, \'r1\' = 8, \'r2\' = 9, \'r3\' = 10)'
+};
 
 
 const data = {
   date: '2018-03-05',
   dateTime: '2018-03-05 22:39:40',
   timestamp: 1520289580643,
-  page: {query: {utm_source: '123', huy: 'vam'}},
+  page: {
+    query: {
+      utm_source: '123',
+      huy: 'vam'
+    }
+  },
   session: {marks: {}},
   user: {traits: {}},
-  data: {},
   name: 'Page loaded',
   projectId: 12,
   uid: '4779592488672908363',
-  lib: {name: 'alco.js', libver: 115, snippet: 1},
+  lib: {
+    name: 'alco.js',
+    libver: 115,
+    snippet: 1
+  },
   client:
     {
       ts: 1520289580598,
@@ -156,7 +175,10 @@ const data = {
   browser:
     {
       if: [0, 0],
-      wh: {w: 1440, h: 485},
+      wh: {
+        w: 1440,
+        h: 485
+      },
       sr:
         {
           tot: {},
@@ -185,69 +207,134 @@ const data = {
   mdd:
     {
       isBot: 0,
-      os: {name: 'Mac', version: '10.13', platform: ''},
-      client: {type: 'browser', name: 'Chrome', version: '64.0'},
-      device: {type: 'desktop', brand: '', model: ''}
+      os: {
+        name: 'Mac',
+        version: '10.13',
+        platform: ''
+      },
+      client: {
+        type: 'browser',
+        name: 'Chrome',
+        version: '64.0'
+      },
+      device: {
+        type: 'desktop',
+        brand: '',
+        model: ''
+      }
     },
   sxg:
     {
-      country: {iso: 'RU', name_ru: 'Россия', name_en: 'Russia'},
+      country: {
+        iso: 'RU',
+        name_ru: 'Россия',
+        name_en: 'Russia'
+      },
       region:
         {
           name_ru: 'Краснодарский край',
           name_en: 'Krasnodarskiy Kray',
-          id: 0
+          iso: 'dfsdfs'
         },
-      city: {id: 542420, name_ru: 'Краснодар', name_en: 'Krasnodar'}
-    }
-};
-
-const nestedKV = [...fields].reduce((acc, e) => {
-  if (e.indexOf('.') >= 0) {
-    const path = e.slice(0, e.indexOf('.'));
-    const key = e.slice(e.indexOf('.') + 1);
-    if (!acc[path] && (key === 'key' || key === 'value')) {
-      acc[path] = true;
+      city: {
+        id: 542420,
+        name_ru: 'Краснодар',
+        name_en: 'Krasnodar'
+      }
+    },
+  data: {
+    update_id: 3237028,
+    message: {
+      'message_id': 19,
+      'from': {
+        'id': 97444302,
+        'is_bot': false,
+        'first_name': 'Dmitry',
+        'last_name': 'Rodin',
+        'username': 'dmitryrodin',
+        'language_code': 'en-RU'
+      },
+      'chat': {
+        'id': -1001357144786,
+        'title': 'Xeteq Alcolytics Internal',
+        'type': 'supergroup'
+      },
+      'date': 1521480653,
+      'text': 'hhh'
     }
   }
-  return acc;
-}, {});
+};
 
 
-const isObject = (value) => typeof value === 'object' && !Array.isArray(value);
-
-const walker = (child, separator = '_', path = []) => {
-  const accum = {};
-  const root_path = path.join(separator);
-  const kv = Object.keys(nestedKV).indexOf(root_path) >= 0 ? {} : null;
-
-  Object.keys(child).forEach(key => {
-
-    if (isObject(child[key])) {
-
-      Object.assign(accum, walker(child[key], separator, path.concat([key])));
-
-    } else {
-
-      const item_path = path.concat(key).join(separator);
-
-      if (fields.has(item_path)) {
-        accum[item_path] = child[key];
-      } else if (kv) {
-        kv[key] = child[key];
-      } else {
-        console.log(`!! not found ${item_path}`);
-      }
+const nestedKV = new Set();
+Object.keys(cols)
+  .forEach((e) => {
+    if (e.indexOf('.') >= 0) {
+      const path = e.slice(0, e.indexOf('.'));
+      const key = e.slice(e.indexOf('.') + 1);
+      nestedKV.add(path);
     }
   });
-  if (kv) {
-    accum[root_path] = kv;
-  }
-  return accum;
+
+const emptySet = new Set();
+const isObject = (value) => typeof value === 'object' && !Array.isArray(value);
+
+
+// console.log(nestedKV);
+
+/**
+ *
+ * @param child {Object}
+ * @param nested {Set}
+ * @param cols {Object}
+ * @param path {Array<string>}
+ * @param separator {string}
+ * @param noCheck {boolean}
+ * @return {Object}
+ */
+const flatObject = (child, nested, cols, path = [], separator = '_', noCheck = false) => {
+  const acc = {};
+  const root_path = path.join(separator);
+  const kv = root_path && nested && nested.has(root_path) ? {} : null;
+
+  Object.keys(child)
+    .forEach(key => {
+      if (kv) {
+        if (isObject(child[key])) {
+          Object.assign(
+            kv,
+            flatObject(child[key], null, {}, path, separator, true)
+          );
+        }
+        else {
+          kv[key] = child[key];
+        }
+      }
+      else {
+        const item_path = path.concat(key).join(separator);
+
+        if (isObject(child[key])) {
+          Object.assign(
+            acc,
+            flatObject(child[key], nested, cols, path.concat([key]), separator, noCheck)
+          );
+        }
+        else if (cols[item_path] || noCheck) {
+          acc[item_path] = child[key];
+        }
+        else {
+          console.warn(`!! not found path:${path.join('.')}, key:${key}, val:${child[key]}`);
+        }
+      }
+    });
+  return Object.assign(
+    acc,
+    kv && flatObject(unzip(kv, String, String), emptySet, cols, [root_path], '.')
+  );
 };
 
 
-const rec = walker(data, '_');
+const rec = flatObject(data, nestedKV, cols);
 
 console.log(rec);
 

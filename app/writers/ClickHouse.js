@@ -14,32 +14,50 @@ const emptySet = new Set();
  * @param child {Object}
  * @param nested {Set}
  * @param cols {Object}
- * @param path {Array}
+ * @param path {Array<string>}
  * @param separator {string}
- * @return {{} & any}
+ * @param noCheck {boolean}
+ * @return {Object}
  */
-const flatObject = (child, nested, cols, path = [], separator = '_') => {
+const flatObject = (child, nested, cols, path = [], separator = '_', noCheck = false) => {
   const acc = {};
   const root_path = path.join(separator);
-  const kv = root_path && nested.has(root_path) ? {} : null;
+  const kv = root_path && nested && nested.has(root_path) ? {} : null;
 
   Object.keys(child)
     .forEach(key => {
-      if (isObject(child[key])) {
-        Object.assign(acc, flatObject(child[key], nested, cols, path.concat([key]), separator));
-      } else {
-        const item_path = path.concat(key)
-          .join(separator);
-        if (cols[item_path]) {
-          acc[item_path] = child[key];
-        } else if (kv) {
+      if (kv) {
+        if (isObject(child[key])) {
+          Object.assign(
+            kv,
+            flatObject(child[key], null, {}, path, separator, true)
+          );
+        }
+        else {
           kv[key] = child[key];
-        } else {
-          console.warn(`!! not found path:${path}, key:${child[key]},val:`);
+        }
+      }
+      else {
+        const item_path = path.concat(key).join(separator);
+
+        if (isObject(child[key])) {
+          Object.assign(
+            acc,
+            flatObject(child[key], nested, cols, path.concat([key]), separator, noCheck)
+          );
+        }
+        else if (cols[item_path] || noCheck) {
+          acc[item_path] = child[key];
+        }
+        else {
+          console.warn(`!! not found path:${path.join('.')}, key:${key}, val:${child[key]}`);
         }
       }
     });
-  return Object.assign(acc, kv && flatObject(unzip(kv, String, String), emptySet, cols, [root_path], '.'));
+  return Object.assign(
+    acc,
+    kv && flatObject(unzip(kv, String, String), emptySet, cols, [root_path], '.')
+  );
 };
 
 
