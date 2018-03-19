@@ -185,7 +185,7 @@ class TrackerHttpApi {
 
       } catch (err) {
 
-        this.stat.mark('error.track');
+        this.stat.mark('error.track.validation');
         this.log.error(msg, err.message);
 
       }
@@ -223,6 +223,8 @@ class TrackerHttpApi {
       };
 
       try {
+
+        this.log.info(req.body, 'body');
 
         res.json({result: 'queued'});
 
