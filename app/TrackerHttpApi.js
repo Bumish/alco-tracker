@@ -95,14 +95,11 @@ class TrackerHttpApi {
       const receivedUid = req.query[uidParam] || req.cookies[uidParam];
 
       req.uid = isValidUid(receivedUid) && receivedUid || this.trackerService.generateUid();
-
       res.cookie(uidParam, req.uid, {
         expires: new Date(Date.now() + cookieMaxAge * 1000),
         httpOnly: true
       });
-
       next();
-
     });
 
     this.app.get('/img', asyncUtil(async (req, res) => {

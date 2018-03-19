@@ -26,39 +26,42 @@ const flatObject = (child, nested, cols, path = [], separator = '_', noCheck = f
 
   Object.keys(child)
     .forEach(key => {
+      const val = child[key];
+      const isObj = isObject(val);
       if (kv) {
-        if (isObject(child[key])) {
+        if (isObj) {
           Object.assign(
             kv,
-            flatObject(child[key], null, {}, path, separator, true)
+            flatObject(val, null, {}, [], separator, true)
           );
         }
         else {
-          kv[key] = child[key];
+          kv[key] = val;
         }
       }
       else {
-        const item_path = path.concat(key).join(separator);
-
-        if (isObject(child[key])) {
+        const item_path = path.concat(key)
+          .join(separator);
+        if (isObj) {
           Object.assign(
             acc,
-            flatObject(child[key], nested, cols, path.concat([key]), separator, noCheck)
+            flatObject(val, nested, cols, path.concat([key]), separator, noCheck)
           );
         }
         else if (cols[item_path] || noCheck) {
-          acc[item_path] = child[key];
+          acc[item_path] = val;
         }
         else {
-          console.warn(`!! not found path:${path.join('.')}, key:${key}, val:${child[key]}`);
+          console.warn(`!! not found path:${path.join('.')}, key:${key}, val:${val}`);
         }
       }
     });
   return Object.assign(
     acc,
-    kv && flatObject(unzip(kv, String, String), emptySet, cols, [root_path], '.')
+    kv && flatObject(unzip(kv, String, String), null, cols, [root_path], '.', true)
   );
 };
+
 
 
 class ClickHouse {
