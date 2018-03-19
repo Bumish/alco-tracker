@@ -245,7 +245,7 @@ const data = {
   data: {
     update_id: 3237028,
     message: {
-      'message_id': 19,
+      'message_id': 21,
       'from': {
         'id': 97444302,
         'is_bot': false,
@@ -259,8 +259,30 @@ const data = {
         'title': 'Xeteq Alcolytics Internal',
         'type': 'supergroup'
       },
-      'date': 1521480653,
-      'text': 'hhh'
+      'date': 1521487696,
+      'new_chat_participant': {
+        'id': 230749719,
+        'is_bot': false,
+        'first_name': 'Alex',
+        'last_name': 'this.createSome();',
+        'username': 'sosedsatany667'
+      },
+      'new_chat_member': {
+        'id': 230749719,
+        'is_bot': false,
+        'first_name': 'Alex',
+        'last_name': 'this.createSome();',
+        'username': 'sosedsatany667'
+      },
+      'new_chat_members': [
+        {
+          'id': 230749719,
+          'is_bot': false,
+          'first_name': 'Alex',
+          'last_name': 'this.createSome();',
+          'username': 'sosedsatany667'
+        }
+      ]
     }
   }
 };
@@ -277,10 +299,17 @@ Object.keys(cols)
   });
 
 const emptySet = new Set();
-const isObject = (value) => typeof value === 'object' && !Array.isArray(value);
+
+const isObject = o => !!o && typeof o === 'object' && Object.prototype.toString.call(o) === '[object Object]';
+const isArray = o => !!o && typeof o === 'object' && o instanceof Array;// Array.isArray(o);
 
 
-// console.log(nestedKV);
+const handleValue = (value) => {
+  if (isArray(value)) {
+    return value.map(e => JSON.stringify(e))
+  }
+  return value;
+};
 
 /**
  *
@@ -299,37 +328,39 @@ const flatObject = (child, nested, cols, path = [], separator = '_', noCheck = f
 
   Object.keys(child)
     .forEach(key => {
+      const val = child[key];
+      const isObj = isObject(val);
       if (kv) {
-        if (isObject(child[key])) {
+        if (isObj) {
           Object.assign(
             kv,
-            flatObject(child[key], null, {}, path, separator, true)
+            flatObject(val, null, {}, [], separator, true)
           );
         }
         else {
-          kv[key] = child[key];
+          kv[key] = val;
         }
       }
       else {
-        const item_path = path.concat(key).join(separator);
-
-        if (isObject(child[key])) {
+        const item_path = path.concat(key)
+          .join(separator);
+        if (isObj) {
           Object.assign(
             acc,
-            flatObject(child[key], nested, cols, path.concat([key]), separator, noCheck)
+            flatObject(val, nested, cols, path.concat([key]), separator, noCheck)
           );
         }
         else if (cols[item_path] || noCheck) {
-          acc[item_path] = child[key];
+          acc[item_path] = val;
         }
         else {
-          console.warn(`!! not found path:${path.join('.')}, key:${key}, val:${child[key]}`);
+          console.warn(`!! not found path:${path.join('.')}, key:${key}, val:${val}`);
         }
       }
     });
   return Object.assign(
     acc,
-    kv && flatObject(unzip(kv, String, String), emptySet, cols, [root_path], '.')
+    kv && flatObject(unzip(kv, String, String), null, cols, [root_path], '.', true)
   );
 };
 

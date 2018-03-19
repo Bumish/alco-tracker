@@ -95,14 +95,11 @@ class TrackerHttpApi {
       const receivedUid = req.query[uidParam] || req.cookies[uidParam];
 
       req.uid = isValidUid(receivedUid) && receivedUid || this.trackerService.generateUid();
-
       res.cookie(uidParam, req.uid, {
         expires: new Date(Date.now() + cookieMaxAge * 1000),
         httpOnly: true
       });
-
       next();
-
     });
 
     this.app.get('/img', asyncUtil(async (req, res) => {
@@ -130,16 +127,16 @@ class TrackerHttpApi {
         if (msg['error']) {
 
           this.log.warn(msg, 'Tracking using pixel');
-          this.stat.mark('frontend.error')
+          this.stat.mark('frontend.error');
 
-        } else {
+        }
+        else {
 
           const clean = await Joi.validate(msg, PixelSchema);
           await this.trackerService.toStore(clean);
           this.stat.histPush('img', timeDuration(req.startAt));
 
         }
-
 
 
       } catch (error) {
@@ -222,11 +219,36 @@ class TrackerHttpApi {
         remote_ip: req.ip
       };
 
+      // Bot testing
       try {
+        if (
+          msg.name === 'telegram/bot'
+          && msg.data.message
+          && msg.data.message.new_chat_member
+          && msg.data.message.chat
+        ) {
 
-        this.log.info(req.body, 'body');
+          const member = msg.data.message.new_chat_member;
+          const chat = msg.data.message.chat;
+          const answer = {
+            method: 'sendMessage',
+            chat_id: chat.id,
+            text: `Привет, ${member.username ? `@${member.username}` : member.first_name}!\nРасскажи немного о себе с хештегом #me.`
+          };
+          res.json(answer);
 
+        }
+        else {
+          res.json({result: 'queued'});
+        }
+
+      } catch (error) {
+        this.log.error(error, 'Bot error');
         res.json({result: 'queued'});
+      }
+
+      
+      try {
 
         await this.trackerService.toStore(msg);
         this.stat.histPush('handled.webhook', timeDuration(req.startAt));
