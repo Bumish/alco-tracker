@@ -28,6 +28,7 @@ writers:
       test/test: wh_test_test
     pixel:
       default: events_v2
+      checkid: id_checks
     # common tables fields
     base:
       id: UInt64
@@ -46,6 +47,13 @@ writers:
         data.value: Array(String)
         _options:
           engine: MergeTree(date, (service, action, date), 8192)
+      id_checks:
+        uid: UInt64
+        data_gaId: String
+        data.key: Array(String)
+        data.value: Array(String)
+        _options:
+          engine: MergeTree(date, (uid, date), 8192)
       events_v2: &events
         uid: UInt64
         ip: String

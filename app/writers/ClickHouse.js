@@ -28,28 +28,30 @@ const flatObject = (child, nested, cols, path = [], separator = '_', noCheck = f
     .forEach(key => {
       const val = child[key];
       const isObj = isObject(val);
+      const itemPath = path.concat(key).join(separator);
       if (kv) {
         if (isObj) {
           Object.assign(
             kv,
-            flatObject(val, null, {}, [], separator, true)
+            flatObject(val, null, {}, path, separator, true)
           );
+        }
+        else if (cols[itemPath]) {
+          acc[itemPath] = val;
         }
         else {
           kv[key] = val;
         }
       }
       else {
-        const item_path = path.concat(key)
-          .join(separator);
         if (isObj) {
           Object.assign(
             acc,
             flatObject(val, nested, cols, path.concat([key]), separator, noCheck)
           );
         }
-        else if (cols[item_path] || noCheck) {
-          acc[item_path] = val;
+        else if (cols[itemPath] || noCheck) {
+          acc[itemPath] = val;
         }
         else {
           console.warn(`!! not found path:${path.join('.')}, key:${key}, val:${val}`);
