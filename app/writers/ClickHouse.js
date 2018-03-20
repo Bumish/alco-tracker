@@ -33,7 +33,7 @@ const flatObject = (child, nested, cols, path = [], separator = '_', noCheck = f
         if (isObj) {
           Object.assign(
             kv,
-            flatObject(val, null, {}, path, separator, true)
+            flatObject(val, null, {}, [], separator, true)
           );
         }
         else if (cols[itemPath]) {
