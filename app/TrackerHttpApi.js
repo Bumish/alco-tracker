@@ -119,7 +119,7 @@ class TrackerHttpApi {
 
       try {
 
-        const {b64, ...query} = req.query;
+        const {uid, b64, ...query} = req.query;
         let msg;
 
         if (b64) {
@@ -129,23 +129,21 @@ class TrackerHttpApi {
           msg = Object.assign({}, JSON.parse(raw), meta);
         }
         else {
-          const {uid, projectId, name, ...data} = query;
+          const {projectId, name, ...data} = query;
           const meta2 = {projectId, name};
           msg = Object.assign({}, {data}, meta2, meta);
         }
 
-        if (msg['error']) {
-
-          this.log.warn(msg, 'Tracking using pixel');
+        // Errors ans warns from client lib
+        if (msg.name === 'log') {
           this.stat.mark('frontend.error');
-
+          return this.log.warn(msg, 'Data from client lib');
         }
         else {
 
           const clean = await Joi.validate(msg, PixelSchema);
           await this.trackerService.toStore(clean);
           this.stat.histPush('img', timeDuration(req.startAt));
-
         }
 
 
@@ -179,7 +177,8 @@ class TrackerHttpApi {
 
       // Errors ans warns from client lib
       if (msg.name === 'log') {
-        return this.log.warn(msg.args, 'Data from client lib');
+        this.stat.mark('frontend.error');
+        return this.log.warn(msg, 'Data from client lib');
       }
 
       try {
