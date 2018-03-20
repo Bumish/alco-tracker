@@ -8,12 +8,12 @@ const Schema = Joi.object().keys({
 
   domain: Joi.string().required(),
   query: Joi.object().keys({
-    utm_source: Joi.string().optional().allow(''),
-    utm_campaign: Joi.string().optional().allow(''),
-    utm_medium: Joi.string().optional().allow(''),
-    utm_content: Joi.string().optional().allow(''),
-    utm_term: Joi.string().optional().allow(''),
-  }).unknown(true).default({}).required(),
+    utm_source: Joi.string(),
+    utm_campaign: Joi.string(),
+    utm_medium: Joi.string(),
+    utm_content: Joi.string(),
+    utm_term: Joi.string(),
+  }).default({}).required().unknown(true),
   proto: Joi.string().allow(['http', 'https', 'other']).required()
 
 });
@@ -21,24 +21,31 @@ const Schema = Joi.object().keys({
 const validProtos = new Set(['http', 'https']);
 const otherProto = 'other';
 
-const handle = (data) => {
+const handle = (page_url) => {
 
-  const parsedURL = url.parse(data.url, true);
+  const parsedURL = url.parse(page_url, true);
   const proto = parsedURL.protocol.slice(0,-1);
+  const query = parsedURL.query;
+  
+  Object.keys(parsedURL.query)
+    .forEach(key => {
+      query[key] = query[key] === '' ? undefined: String(query[key])
+    });
 
   return {
     domain: parsedURL.hostname,
     proto: validProtos.has(proto) >= 0 ? proto : otherProto,
-    query: parsedURL.query
+    query: query
   };
 };
 
 
 class PageEnricher {
 
-  constructor(options, {log}) {
+  constructor(options, {log, stat}) {
 
     this.log = log.child({module: 'Page'});
+    this.stat = stat;
     this.prefix = 'page';
 
   }
@@ -54,19 +61,14 @@ class PageEnricher {
 
     try {
 
-      Object.keys(query)
-        .forEach(key => query[key] === '' ? undefined: String(query[key]));
-
-
-      const data = msg.page;
-
       return await Joi.validate(
-        handle(data),
+        handle(query),
         Schema
       );
 
     } catch (error) {
       this.log.error(error);
+      this.stat.mark('error.enrich.validation');
     }
 
     return response;

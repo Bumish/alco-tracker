@@ -36,9 +36,10 @@ const handle = (data) => {
 
 class SypexGeoConnector {
 
-  constructor(options, {log}) {
+  constructor(options, {log, stat}) {
 
     this.log = log.child({module: 'SxGeo'});
+    this.stat = stat;
     this.service = new HttpConnector(options, {log});
     this.prefix = options.prefix;
 
@@ -68,6 +69,7 @@ class SypexGeoConnector {
 
     } catch (error) {
       this.log.error(error);
+      this.stat.mark('error.enrich.validation');
     }
 
     return response;
