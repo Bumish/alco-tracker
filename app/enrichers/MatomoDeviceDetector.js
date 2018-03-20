@@ -49,9 +49,10 @@ const handle = data => {
 
 class MatomoDeviceDetectorConnector {
 
-  constructor(options, {log}) {
+  constructor(options, {log, stat}) {
 
     this.log = log.child({module: 'DDet'});
+    this.stat = stat;
     this.service = new HttpConnector(options, {log});
     this.prefix = options.prefix;
   }
@@ -79,6 +80,7 @@ class MatomoDeviceDetectorConnector {
 
     } catch (error) {
       this.log.error({query}, error);
+      this.stat.mark('error.enrich.validation');
     }
 
     return response;

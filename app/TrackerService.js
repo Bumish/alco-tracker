@@ -15,7 +15,7 @@ class TrackerService {
 
     this.enrichers = Object.keys(Enrichers)
       .map(k => {
-        return new Enrichers[k](config.services[k], {log});
+        return new Enrichers[k](config.services[k], {log, stat});
       });
 
     this.writers = Object.keys(Writers)
