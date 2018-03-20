@@ -119,14 +119,11 @@ class TrackerHttpApi {
 
       try {
 
-        const {uid, b64, ...query} = req.query;
+        const {uid, j, ...query} = req.query;
         let msg;
 
-        if (b64) {
-          const raw = Buffer
-            .from(req.query['b64'], 'base64')
-            .toString();
-          msg = Object.assign({}, JSON.parse(raw), meta);
+        if (j) {
+          msg = Object.assign({}, JSON.parse(j), meta);
         }
         else {
           const {projectId, name, ...data} = query;
