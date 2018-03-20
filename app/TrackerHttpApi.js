@@ -102,6 +102,7 @@ class TrackerHttpApi {
       next();
     });
 
+
     this.app.get('/img', asyncUtil(async (req, res) => {
 
       res.type('gif')
@@ -118,11 +119,20 @@ class TrackerHttpApi {
 
       try {
 
-        const raw = Buffer
-          .from(req.query['b64'], 'base64')
-          .toString();
+        const {b64, ...query} = req.query;
+        let msg;
 
-        const msg = Object.assign({}, JSON.parse(raw), meta);
+        if (b64) {
+          const raw = Buffer
+            .from(req.query['b64'], 'base64')
+            .toString();
+          msg = Object.assign({}, JSON.parse(raw), meta);
+        }
+        else {
+          const {uid, projectId, name, ...data} = query;
+          const meta2 = {projectId, name};
+          msg = Object.assign({}, {data}, meta2, meta);
+        }
 
         if (msg['error']) {
 
@@ -247,7 +257,7 @@ class TrackerHttpApi {
         res.json({result: 'queued'});
       }
 
-      
+
       try {
 
         await this.trackerService.toStore(msg);
